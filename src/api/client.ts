@@ -247,8 +247,8 @@ apiClient.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    // Network error or backend offline: Use fallback mock
-    if (!error.response || status >= 500 || status === 404) {
+    // Network error (no connection to backend): Use fallback mock
+    if (!error.response) {
       console.warn(`[Backend Offline Fallback] Handling ${error.config?.url} with local state`)
       return handleMockFallback(error.config)
     }
