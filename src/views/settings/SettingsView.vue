@@ -230,6 +230,10 @@ const categoryStore = useCategoryStore()
 const { isDark, toggleDark } = useTheme()
 
 const webhookUrl = computed(() => {
+  const envBase = import.meta.env.VITE_API_BASE_URL
+  if (envBase && envBase.startsWith('http')) {
+    return `${envBase.replace(/\/+$/, '')}/api/webhooks/sepay`
+  }
   return `${window.location.protocol}//${window.location.hostname}:8085/api/webhooks/sepay`
 })
 
