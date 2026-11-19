@@ -33,5 +33,15 @@ export const debtApi = {
   cancelDebt: async (debtId: string): Promise<Debt> => {
     const res = await apiClient.post<ApiResponse<Debt>>(`/debts/${debtId}/cancel`)
     return res.data.data
+  },
+
+  getSummary: async (): Promise<import('@/types/debt').DebtSummary> => {
+    const res = await apiClient.get<ApiResponse<import('@/types/debt').DebtSummary>>('/debts/summary')
+    return res.data.data
+  },
+
+  getSummaryByPerson: async (): Promise<import('@/types/debt').PersonDebtSummary[]> => {
+    const res = await apiClient.get<ApiResponse<import('@/types/debt').PersonDebtSummary[]>>('/debts/by-person')
+    return res.data.data
   }
 }

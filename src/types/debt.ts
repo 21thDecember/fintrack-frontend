@@ -62,3 +62,22 @@ export interface DebtFilterParams {
   page?: number
   limit?: number
 }
+
+export interface PersonDebtSummary {
+  personId: string
+  personName: string
+  personPhone?: string
+  receivableAmount: number
+  payableAmount: number
+  netAmount: number
+  activeDebtsCount: number
+}
+
+export interface DebtSummary {
+  totalReceivable: number
+  totalPayable: number
+  netDebt: number
+  activeDebtsCount: number
+  overdueDebtsCount: number
+  personSummaries?: PersonDebtSummary[]
+}

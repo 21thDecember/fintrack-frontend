@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { debtApi } from '@/api/debtApi'
-import type { Debt, CreateDebtDto, RecordDebtPaymentDto, DebtFilterParams } from '@/types/debt'
+import type { Debt, CreateDebtDto, RecordDebtPaymentDto, DebtFilterParams, PersonDebtSummary } from '@/types/debt'
 import { ElMessage } from 'element-plus'
 
 export const useDebtStore = defineStore('debt', () => {
   const debts = ref<Debt[]>([])
+  const personSummaries = ref<PersonDebtSummary[]>([])
   const loading = ref(false)
 
   const receivables = computed(() => debts.value.filter(d => d.type === 'RECEIVABLE'))
@@ -39,6 +40,17 @@ export const useDebtStore = defineStore('debt', () => {
     }
   }
 
+  async function fetchPersonSummaries() {
+    try {
+      const res = await debtApi.getSummaryByPerson()
+      personSummaries.value = res || []
+      return personSummaries.value
+    } catch (err) {
+      console.error('Failed to fetch person debt summaries', err)
+      return []
+    }
+  }
+
   async function getDebtById(id: string): Promise<Debt> {
     loading.value = true
     try {
@@ -53,7 +65,6 @@ export const useDebtStore = defineStore('debt', () => {
     try {
       const created = await debtApi.createDebt(data)
       debts.value.unshift(created)
-      ElMessage.success('Đã thêm khoản nợ mới')
       return created
     } catch (err) {
       console.error('Failed to create debt', err)
@@ -97,6 +108,7 @@ export const useDebtStore = defineStore('debt', () => {
 
   return {
     debts,
+    personSummaries,
     receivables,
     payables,
     totalReceivable,
@@ -104,6 +116,7 @@ export const useDebtStore = defineStore('debt', () => {
     openCount,
     loading,
     fetchDebts,
+    fetchPersonSummaries,
     getDebtById,
     createDebt,
     recordPayment,

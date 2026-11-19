@@ -31,6 +31,56 @@
       />
     </div>
 
+    <!-- Person Debt Summary Card -->
+    <el-card class="person-summary-card" shadow="never">
+      <div class="person-summary-header">
+        <div class="title-group">
+          <div class="icon-wrap">
+            <el-icon><User /></el-icon>
+          </div>
+          <div>
+            <h3 class="title">Tổng nợ theo từng người liên quan</h3>
+            <p class="subtitle">Bấm vào từng người để lọc nhanh các khoản nợ tương ứng</p>
+          </div>
+        </div>
+        <el-tag v-if="personFilter" closable type="primary" @close="personFilter = undefined">
+          Đang lọc: {{ getPersonName(personFilter) }}
+        </el-tag>
+      </div>
+
+      <div v-if="!debtStore.personSummaries || debtStore.personSummaries.length === 0" class="empty-summary">
+        Chưa có dữ liệu công nợ theo từng người liên quan.
+      </div>
+      <div v-else class="person-summary-grid">
+        <div
+          v-for="ps in debtStore.personSummaries"
+          :key="ps.personId"
+          class="person-badge"
+          :class="{ 'is-active': personFilter === ps.personId }"
+          @click="selectPersonFilter(ps.personId)"
+        >
+          <div class="badge-header">
+            <span class="person-name" :title="ps.personName">{{ ps.personName }}</span>
+            <span class="debt-count">{{ ps.activeDebtsCount }} khoản</span>
+          </div>
+          <div class="badge-body">
+            <div class="row receivable">
+              <span>Họ nợ:</span>
+              <span class="font-bold">+{{ formatCurrency(ps.receivableAmount) }}</span>
+            </div>
+            <div class="row payable">
+              <span>Mình nợ:</span>
+              <span class="font-bold">-{{ formatCurrency(ps.payableAmount) }}</span>
+            </div>
+            <div class="row net" :class="ps.netAmount >= 0 ? 'text-income' : 'text-expense'">
+              <span>Chênh lệch:</span>
+              <span>{{ ps.netAmount >= 0 ? '+' : '' }}{{ formatCurrency(ps.netAmount) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </el-card>
+
     <!-- Main Tabs & Action Card -->
     <el-card class="debts-main-card" shadow="never">
       <div class="debts-header-row">
@@ -225,11 +275,14 @@
           </el-radio-group>
         </el-form-item>
 
-        <el-form-item label="Người liên quan" prop="personId">
+        <el-form-item label="Người liên quan" prop="personIds">
           <div style="display: flex; gap: 8px; width: 100%;">
             <el-select
-              v-model="newDebtForm.personId"
-              placeholder="Chọn người liên quan..."
+              v-model="newDebtForm.personIds"
+              multiple
+              collapse-tags
+              collapse-tags-tooltip
+              placeholder="Chọn một hoặc nhiều người liên quan..."
               filterable
               style="flex: 1;"
             >
@@ -254,6 +307,13 @@
             <el-button type="primary" plain :icon="Plus" @click="showCreatePersonDialog = true">
               Thêm mới
             </el-button>
+          </div>
+          <div v-if="newDebtForm.personIds && newDebtForm.personIds.length > 1" class="mt-2 text-xs p-2.5 bg-blue-50/70 border border-blue-100 rounded-lg text-blue-900 w-full">
+            <span>
+              Đã chọn <strong>{{ newDebtForm.personIds.length }} người</strong>. Hệ thống sẽ ghi nợ riêng cho từng người cùng số tiền 
+              <strong>{{ formatCurrency(newDebtForm.principalAmount) }}</strong> 
+              (Tổng cộng: <strong>{{ formatCurrency(newDebtForm.principalAmount * newDebtForm.personIds.length) }}</strong>).
+            </span>
           </div>
         </el-form-item>
 
@@ -370,19 +430,21 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import type { FormInstance, FormRules } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { Money, CreditCard, Document, Plus, Search, User } from '@element-plus/icons-vue'
 import { useDebtStore } from '@/stores/debt'
 import { usePersonStore } from '@/stores/person'
 import { useResponsive } from '@/composables/useResponsive'
-import type { Debt, DebtStatus, CreateDebtDto } from '@/types/debt'
+import type { Debt, DebtStatus } from '@/types/debt'
 import { formatCurrency } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
 import { getDebtStatusLabel } from '@/utils/constants'
 import StatCard from '@/components/common/StatCard.vue'
 import DebtPaymentDialog from '@/components/debts/DebtPaymentDialog.vue'
 
+const route = useRoute()
 const router = useRouter()
 const { isMobile } = useResponsive()
 const debtStore = useDebtStore()
@@ -398,16 +460,37 @@ const showPaymentDialog = ref(false)
 const paymentDebt = ref<Debt | null>(null)
 const createFormRef = ref<FormInstance>()
 
-const newDebtForm = reactive<CreateDebtDto>({
+interface CreateDebtFormState {
+  type: 'RECEIVABLE' | 'PAYABLE'
+  personId?: string
+  personIds: string[]
+  principalAmount: number
+  dueDate?: string
+  description: string
+}
+
+const newDebtForm = reactive<CreateDebtFormState>({
   type: 'RECEIVABLE',
   personId: '',
+  personIds: [],
   principalAmount: 1000000,
   dueDate: undefined,
   description: ''
 })
 
 const createRules: FormRules = {
-  personId: [{ required: true, message: 'Vui lòng chọn người liên quan', trigger: 'change' }],
+  personIds: [
+    {
+      validator: (_rule, val, callback) => {
+        if ((!val || val.length === 0) && !newDebtForm.personId) {
+          callback(new Error('Vui lòng chọn ít nhất một người liên quan'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'change'
+    }
+  ],
   principalAmount: [{ required: true, message: 'Vui lòng nhập số tiền gốc', trigger: 'blur' }],
   description: [{ required: true, message: 'Vui lòng nhập mô tả', trigger: 'blur' }]
 }
@@ -458,16 +541,59 @@ function openPaymentDialog(debt: any) {
 
 function handlePaymentSuccess() {
   debtStore.fetchDebts()
+  debtStore.fetchPersonSummaries()
+}
+
+function selectPersonFilter(pId: string) {
+  if (personFilter.value === pId) {
+    personFilter.value = undefined
+  } else {
+    personFilter.value = pId
+  }
+}
+
+function getPersonName(pId?: string) {
+  if (!pId) return ''
+  const p = personStore.persons.find(x => x.id === pId)
+  if (p) return p.name
+  const ps = debtStore.personSummaries.find(x => x.personId === pId)
+  return ps ? ps.personName : pId
 }
 
 async function handleCreateDebt() {
   if (!createFormRef.value) return
   await createFormRef.value.validate(async (valid) => {
     if (valid) {
-      await debtStore.createDebt(newDebtForm)
-      showCreateDialog.value = false
-      newDebtForm.description = ''
-      newDebtForm.dueDate = undefined
+      const targetPersonIds = [...(newDebtForm.personIds || [])]
+      if (targetPersonIds.length === 0 && newDebtForm.personId) {
+        targetPersonIds.push(newDebtForm.personId)
+      }
+
+      if (targetPersonIds.length === 0) {
+        ElMessage.error('Vui lòng chọn ít nhất một người liên quan')
+        return
+      }
+
+      try {
+        for (const pId of targetPersonIds) {
+          await debtStore.createDebt({
+            type: newDebtForm.type,
+            personId: pId,
+            principalAmount: newDebtForm.principalAmount,
+            dueDate: newDebtForm.dueDate,
+            description: newDebtForm.description
+          })
+        }
+        ElMessage.success(`Đã tạo thành công ${targetPersonIds.length} khoản nợ`)
+        showCreateDialog.value = false
+        newDebtForm.personIds = []
+        newDebtForm.personId = ''
+        newDebtForm.description = ''
+        newDebtForm.dueDate = undefined
+        debtStore.fetchPersonSummaries()
+      } catch (err) {
+        console.error('Failed to create debt', err)
+      }
     }
   })
 }
@@ -494,7 +620,9 @@ async function handleCreatePerson() {
           phone: personForm.phone ? personForm.phone.trim() : undefined,
           note: personForm.note ? personForm.note.trim() : undefined
         })
-        newDebtForm.personId = created.id
+        if (!newDebtForm.personIds.includes(created.id)) {
+          newDebtForm.personIds.push(created.id)
+        }
         showCreatePersonDialog.value = false
         personForm.name = ''
         personForm.phone = ''
@@ -507,8 +635,12 @@ async function handleCreatePerson() {
 }
 
 onMounted(() => {
+  if (route.query.personId) {
+    personFilter.value = route.query.personId as string
+  }
   debtStore.fetchDebts()
   personStore.fetchPersons()
+  debtStore.fetchPersonSummaries()
 })
 </script>
 
@@ -525,6 +657,137 @@ onMounted(() => {
 
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
+    }
+  }
+
+  .person-summary-card {
+    border-radius: 12px;
+    border: 1px solid var(--app-card-border);
+
+    .person-summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+
+      .title-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .icon-wrap {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          background: rgba(16, 185, 129, 0.12);
+          color: #10B981;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+        }
+
+        .title {
+          font-size: 0.95rem;
+          font-weight: 600;
+          margin: 0;
+          color: var(--app-text);
+        }
+
+        .subtitle {
+          font-size: 0.75rem;
+          color: var(--app-text-muted);
+          margin: 2px 0 0 0;
+        }
+      }
+    }
+
+    .empty-summary {
+      text-align: center;
+      padding: 16px;
+      font-size: 0.8125rem;
+      color: var(--app-text-muted);
+    }
+
+    .person-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+
+      .person-badge {
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid var(--app-card-border);
+        background: var(--app-bg);
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          border-color: #10B981;
+          background: #fff;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        &.is-active {
+          border-color: #10B981;
+          background: rgba(16, 185, 129, 0.05);
+          box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+
+        .badge-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+
+          .person-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--app-text);
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .debt-count {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: rgba(59, 130, 246, 0.1);
+            color: #3B82F6;
+          }
+        }
+
+        .badge-body {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          font-size: 0.75rem;
+
+          .row {
+            display: flex;
+            justify-content: space-between;
+
+            &.receivable {
+              color: #10B981;
+            }
+            &.payable {
+              color: #EF4444;
+            }
+            &.net {
+              margin-top: 4px;
+              padding-top: 4px;
+              border-top: 1px dashed var(--app-card-border);
+              font-weight: 700;
+            }
+          }
+        }
+      }
     }
   }
 

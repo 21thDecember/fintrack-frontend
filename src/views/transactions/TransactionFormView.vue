@@ -147,11 +147,14 @@
             <el-form-item
               v-else-if="isDebtRelatedType"
               label="Khoản nợ liên quan"
-              prop="debtId"
+              prop="debtIds"
             >
               <el-select
-                v-model="form.debtId"
-                placeholder="Chọn khoản nợ liên kết"
+                v-model="form.debtIds"
+                multiple
+                collapse-tags
+                collapse-tags-tooltip
+                placeholder="Chọn một hoặc nhiều khoản nợ cần thanh toán/thu hồi"
                 clearable
                 style="width: 100%"
               >
@@ -160,8 +163,26 @@
                   :key="d.id"
                   :label="`${d.personName} - Còn: ${formatCurrency(d.remainingAmount)} (${d.description})`"
                   :value="d.id"
-                />
+                >
+                  <div class="flex justify-between items-center w-full">
+                    <span>
+                      <strong class="text-gray-900">{{ d.personName }}</strong>: {{ d.description }}
+                    </span>
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-700">
+                      Còn: {{ formatCurrency(d.remainingAmount) }}
+                    </span>
+                  </div>
+                </el-option>
               </el-select>
+              <div v-if="selectedDebtsTotalRemaining > 0" class="mt-2 text-xs flex flex-wrap gap-2 items-center justify-between p-2.5 bg-blue-50/70 border border-blue-100 rounded-lg text-blue-900">
+                <span>Tổng nợ còn lại của các khoản đã chọn: <strong>{{ formatCurrency(selectedDebtsTotalRemaining) }}</strong></span>
+                <span v-if="form.amount < selectedDebtsTotalRemaining" class="text-amber-700 font-medium">
+                  (Giao dịch sẽ thanh toán tuần tự một phần)
+                </span>
+                <span v-else-if="form.amount === selectedDebtsTotalRemaining" class="text-emerald-700 font-medium">
+                  (Đủ thanh toán trọn gói các khoản nợ đã chọn)
+                </span>
+              </div>
             </el-form-item>
           </div>
 
@@ -287,6 +308,7 @@ const form = reactive<FormState>({
   toAccountId: '',
   categoryId: '',
   debtId: '',
+  debtIds: [] as string[],
   transactionDate: new Date().toISOString().slice(0, 19),
   description: '',
   originalDescription: '',
@@ -345,6 +367,13 @@ const availableDebts = computed(() => {
   return debtStore.debts
 })
 
+const selectedDebtsTotalRemaining = computed(() => {
+  if (!form.debtIds || form.debtIds.length === 0) return 0
+  return debtStore.debts
+    .filter(d => form.debtIds?.includes(d.id))
+    .reduce((sum, d) => sum + (d.remainingAmount || 0), 0)
+})
+
 function handleTypeChange(val: any) {
   if (val !== 'EXPENSE') {
     form.allocations = []
@@ -357,6 +386,7 @@ function handleTypeChange(val: any) {
   }
   if (!isDebtRelatedType.value) {
     form.debtId = ''
+    form.debtIds = []
   }
 }
 
@@ -381,7 +411,8 @@ async function loadTransaction() {
       form.accountId = tx.accountId
       form.toAccountId = tx.toAccountId || ''
       form.categoryId = tx.categoryId || ''
-      form.debtId = (tx as any).debtId || ''
+      form.debtIds = (tx as any).debtIds || ((tx as any).debtId ? [(tx as any).debtId] : [])
+      form.debtId = form.debtIds && form.debtIds.length > 0 ? form.debtIds[0] : ''
       form.description = tx.description
       form.originalDescription = tx.originalDescription
       form.note = tx.note || ''
@@ -406,6 +437,12 @@ async function handleSubmit() {
           ElMessage.error('Tổng số tiền phân chia người khác nợ không được vượt quá số tiền chi tiêu!')
           return
         }
+      }
+
+      if (form.debtIds && form.debtIds.length > 0) {
+        form.debtId = form.debtIds[0]
+      } else {
+        form.debtId = undefined
       }
 
       loading.value = true

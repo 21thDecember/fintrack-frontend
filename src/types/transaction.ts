@@ -38,6 +38,8 @@ export interface Transaction {
   account?: Account
   category?: Category
   allocations?: DebtAllocation[]
+  debtIds?: string[]
+  debtId?: string
   createdAt?: string
   updatedAt?: string
 }
@@ -56,6 +58,7 @@ export interface CreateTransactionDto {
   classificationStatus?: ClassificationStatus
   allocations?: DebtAllocation[]
   debtId?: string // For debt related transactions
+  debtIds?: string[] // Multiple debts linked to transaction
 }
 
 export interface UpdateTransactionDto extends Partial<CreateTransactionDto> {}

@@ -242,38 +242,79 @@
           <div class="card-header-row">
             <div class="header-title">
               <el-icon class="title-icon"><Calendar /></el-icon>
-              <span>Khoản nợ sắp đến hạn</span>
+              <span>Sổ nợ & Người liên quan</span>
             </div>
             <router-link to="/debts">
-              <el-button text type="primary" size="small">Sổ nợ →</el-button>
+              <el-button text type="primary" size="small">Xem sổ nợ →</el-button>
             </router-link>
+          </div>
+          <div style="margin-top: 10px;">
+            <el-radio-group v-model="activeDebtTab" size="small">
+              <el-radio-button label="UPCOMING">Sắp đến hạn</el-radio-button>
+              <el-radio-button label="BY_PERSON">Tổng nợ theo người ({{ debtStore.personSummaries.length }})</el-radio-button>
+            </el-radio-group>
           </div>
         </template>
 
-        <div v-if="!dashboardData?.upcomingDebts || dashboardData.upcomingDebts.length === 0" class="empty-debts">
-          <el-empty description="Không có khoản nợ đến hạn" :image-size="70" />
+        <div v-if="activeDebtTab === 'UPCOMING'">
+          <div v-if="!dashboardData?.upcomingDebts || dashboardData.upcomingDebts.length === 0" class="empty-debts">
+            <el-empty description="Không có khoản nợ đến hạn" :image-size="70" />
+          </div>
+
+          <div v-else class="debts-list">
+            <div v-for="debt in dashboardData.upcomingDebts" :key="debt.id" class="debt-item-card">
+              <div class="debt-left">
+                <div class="debt-person-row">
+                  <strong class="person-name">{{ debt.personName }}</strong>
+                  <el-tag :type="debt.type === 'RECEIVABLE' ? 'success' : 'danger'" size="small">
+                    {{ debt.type === 'RECEIVABLE' ? 'Cần thu' : 'Cần trả' }}
+                  </el-tag>
+                </div>
+                <p class="debt-desc">{{ debt.description }}</p>
+                <span v-if="debt.dueDate" class="debt-due">Hạn: {{ formatDate(debt.dueDate) }}</span>
+              </div>
+
+              <div class="debt-right">
+                <strong :class="debt.type === 'RECEIVABLE' ? 'text-income' : 'text-expense'">
+                  {{ formatCurrency(debt.remainingAmount) }}
+                </strong>
+                <el-button size="small" type="primary" plain round @click="openPaymentDialog(debt)">
+                  Thanh toán
+                </el-button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div v-else class="debts-list">
-          <div v-for="debt in dashboardData.upcomingDebts" :key="debt.id" class="debt-item-card">
-            <div class="debt-left">
-              <div class="debt-person-row">
-                <strong class="person-name">{{ debt.personName }}</strong>
-                <el-tag :type="debt.type === 'RECEIVABLE' ? 'success' : 'danger'" size="small">
-                  {{ debt.type === 'RECEIVABLE' ? 'Cần thu' : 'Cần trả' }}
-                </el-tag>
+        <div v-else class="by-person-list">
+          <div v-if="!debtStore.personSummaries || debtStore.personSummaries.length === 0" class="empty-debts">
+            <el-empty description="Chưa có dữ liệu nợ theo người" :image-size="70" />
+          </div>
+          <div v-else class="debts-list">
+            <div
+              v-for="ps in debtStore.personSummaries"
+              :key="ps.personId"
+              class="debt-item-card"
+              style="cursor: pointer;"
+              @click="router.push(`/debts?personId=${ps.personId}`)"
+            >
+              <div class="debt-left">
+                <div class="debt-person-row">
+                  <strong class="person-name">{{ ps.personName }}</strong>
+                  <el-tag size="small" type="info">{{ ps.activeDebtsCount }} khoản</el-tag>
+                </div>
+                <div style="font-size: 12px; display: flex; gap: 12px; margin-top: 4px;">
+                  <span style="color: #10B981;">Họ nợ: +{{ formatCurrency(ps.receivableAmount) }}</span>
+                  <span style="color: #EF4444;">Mình nợ: -{{ formatCurrency(ps.payableAmount) }}</span>
+                </div>
               </div>
-              <p class="debt-desc">{{ debt.description }}</p>
-              <span v-if="debt.dueDate" class="debt-due">Hạn: {{ formatDate(debt.dueDate) }}</span>
-            </div>
 
-            <div class="debt-right">
-              <strong :class="debt.type === 'RECEIVABLE' ? 'text-income' : 'text-expense'">
-                {{ formatCurrency(debt.remainingAmount) }}
-              </strong>
-              <el-button size="small" type="primary" plain round @click="openPaymentDialog(debt)">
-                Thanh toán
-              </el-button>
+              <div class="debt-right" style="text-align: right;">
+                <div style="font-size: 11px; color: var(--app-text-muted);">Chênh lệch:</div>
+                <strong :class="ps.netAmount >= 0 ? 'text-income' : 'text-expense'">
+                  {{ ps.netAmount >= 0 ? '+' : '' }}{{ formatCurrency(ps.netAmount) }}
+                </strong>
+              </div>
             </div>
           </div>
         </div>
@@ -306,6 +347,7 @@ import {
   Calendar
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
+import { useDebtStore } from '@/stores/debt'
 import { useResponsive } from '@/composables/useResponsive'
 import { dashboardApi } from '@/api/dashboardApi'
 import type { DashboardData } from '@/types/dashboard'
@@ -321,12 +363,14 @@ import DebtPaymentDialog from '@/components/debts/DebtPaymentDialog.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const debtStore = useDebtStore()
 const { isMobile } = useResponsive()
 
 const selectedTimeRange = ref('thisMonth')
 const dashboardData = ref<DashboardData | null>(null)
 const loading = ref(false)
 
+const activeDebtTab = ref<'UPCOMING' | 'BY_PERSON'>('UPCOMING')
 const showPaymentDialog = ref(false)
 const selectedDebt = ref<Debt | null>(null)
 
@@ -356,10 +400,12 @@ function openPaymentDialog(debt: Debt) {
 
 function handlePaymentSuccess() {
   fetchDashboard()
+  debtStore.fetchPersonSummaries()
 }
 
 onMounted(() => {
   fetchDashboard()
+  debtStore.fetchPersonSummaries()
 })
 </script>
 
