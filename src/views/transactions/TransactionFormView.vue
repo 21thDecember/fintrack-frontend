@@ -622,6 +622,12 @@ async function handleSubmit() {
         if (form.type !== 'INCOME' && form.type !== 'EXPENSE') {
           form.categoryId = undefined
         }
+        if (form.transactionDate) {
+          const d = new Date(form.transactionDate)
+          if (!isNaN(d.getTime())) {
+            form.transactionDate = d.toISOString()
+          }
+        }
         if (isEdit.value) {
           await transactionStore.updateTransaction(route.params.id as string, form)
         } else {
