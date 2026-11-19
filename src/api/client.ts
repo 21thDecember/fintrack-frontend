@@ -11,9 +11,18 @@ import {
   getMockMonthlyReport
 } from './mockData'
 
+function getBaseUrl(): string {
+  const envUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()
+  if (!envUrl) {
+    return '/api'
+  }
+  const cleanUrl = envUrl.replace(/\/+$/, '')
+  return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`
+}
+
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-  timeout: 8000,
+  baseURL: getBaseUrl(),
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json'
   }
