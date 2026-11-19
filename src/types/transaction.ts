@@ -38,8 +38,12 @@ export interface Transaction {
   account?: Account
   category?: Category
   allocations?: DebtAllocation[]
+  debtAllocations?: DebtAllocation[]
   debtIds?: string[]
   debtId?: string
+  personId?: string
+  personName?: string
+  dueDate?: string
   createdAt?: string
   updatedAt?: string
 }
@@ -57,8 +61,11 @@ export interface CreateTransactionDto {
   transactionDate: string
   classificationStatus?: ClassificationStatus
   allocations?: DebtAllocation[]
-  debtId?: string // For debt related transactions
+  debtAllocations?: DebtAllocation[]
+  debtId?: string // For debt repayment / collection
   debtIds?: string[] // Multiple debts linked to transaction
+  personId?: string // For LOAN_GIVEN or BORROW_RECEIVED
+  dueDate?: string // Due date for loan
 }
 
 export interface UpdateTransactionDto extends Partial<CreateTransactionDto> {}

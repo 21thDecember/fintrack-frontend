@@ -30,6 +30,10 @@
           <span class="account-name">{{ transaction.account?.name || 'Tài khoản' }}</span>
           <span v-if="transaction.category?.name" class="bullet">•</span>
           <span v-if="transaction.category?.name" class="cat-name">{{ transaction.category.name }}</span>
+          <span v-if="transaction.personName" class="bullet">•</span>
+          <span v-if="transaction.personName" class="person-tag">👤 {{ transaction.personName }}</span>
+          <span v-if="transaction.allocations && transaction.allocations.length > 0" class="bullet">•</span>
+          <span v-if="transaction.allocations && transaction.allocations.length > 0" class="split-tag">⚡ Chia {{ transaction.allocations.length }} người</span>
         </div>
       </div>
     </div>
@@ -138,6 +142,16 @@ function getCategoryInitials(name?: string) {
 
     .bullet {
       opacity: 0.6;
+    }
+
+    .person-tag {
+      color: #059669;
+      font-weight: 500;
+    }
+
+    .split-tag {
+      color: #d97706;
+      font-weight: 500;
     }
   }
 

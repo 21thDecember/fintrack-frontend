@@ -156,6 +156,12 @@
                   <el-tag size="small" :type="row.source === 'BANK' ? 'primary' : 'info'" effect="plain">
                     {{ row.source === 'BANK' ? 'Ngân hàng' : 'Thủ công' }}
                   </el-tag>
+                  <el-tag v-if="row.personName" size="small" type="success" effect="light">
+                    👤 {{ row.personName }}
+                  </el-tag>
+                  <el-tag v-if="row.allocations && row.allocations.length > 0" size="small" type="warning" effect="light">
+                    ⚡ Chia tiền ({{ row.allocations.length }} người)
+                  </el-tag>
                   <el-tag
                     v-if="row.classificationStatus === 'UNCLASSIFIED'"
                     size="small"

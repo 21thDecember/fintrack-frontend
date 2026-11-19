@@ -145,8 +145,8 @@
 
             <!-- Related Debt Selector (For debt repayment / collection) -->
             <el-form-item
-              v-else-if="isDebtRelatedType"
-              label="Khoản nợ liên quan"
+              v-else-if="isDebtSettlementType"
+              label="Khoản nợ liên quan trong Sổ nợ"
               prop="debtIds"
             >
               <el-select
@@ -184,7 +184,62 @@
                 </span>
               </div>
             </el-form-item>
+
+            <!-- Person Selector for LOAN_GIVEN (Cho vay) or BORROW_RECEIVED (Đi vay) -->
+            <el-form-item
+              v-else-if="isLoanOrBorrowType"
+              :label="form.type === 'LOAN_GIVEN' ? 'Người vay tiền (Ghi nợ phải thu)' : 'Người cho vay (Ghi nợ phải trả)'"
+              prop="personId"
+            >
+              <div style="display: flex; gap: 8px; width: 100%;">
+                <el-select
+                  v-model="form.personId"
+                  :placeholder="form.type === 'LOAN_GIVEN' ? 'Chọn người vay tiền...' : 'Chọn người cho vay...'"
+                  filterable
+                  clearable
+                  style="flex: 1;"
+                >
+                  <el-option
+                    v-for="p in personStore.persons"
+                    :key="p.id"
+                    :label="p.name"
+                    :value="p.id"
+                  >
+                    <span>{{ p.name }}</span>
+                    <span v-if="p.phone" style="float: right; color: #8492a6; font-size: 12px">{{ p.phone }}</span>
+                  </el-option>
+                  <template #empty>
+                    <div style="padding: 12px; text-align: center;">
+                      <p style="color: var(--app-text-muted); font-size: 13px; margin-bottom: 6px;">Chưa có người liên hệ nào</p>
+                      <el-button type="primary" size="small" :icon="Plus" @click="showQuickCreatePerson = true">Thêm người mới</el-button>
+                    </div>
+                  </template>
+                </el-select>
+                <el-button type="primary" plain :icon="Plus" @click="showQuickCreatePerson = true">
+                  Thêm mới
+                </el-button>
+              </div>
+              <div class="mt-2 text-xs p-2.5 rounded-lg" :class="form.type === 'LOAN_GIVEN' ? 'bg-emerald-50/70 border border-emerald-100 text-emerald-900' : 'bg-rose-50/70 border border-rose-100 text-rose-900'">
+                <span v-if="form.type === 'LOAN_GIVEN'">
+                  💡 Hệ thống sẽ tự động tạo khoản nợ <strong>Phải thu (Họ nợ mình)</strong> với số tiền <strong>{{ formatCurrency(form.amount) }}</strong> trong Sổ nợ.
+                </span>
+                <span v-else>
+                  💡 Hệ thống sẽ tự động tạo khoản nợ <strong>Phải trả (Mình nợ họ)</strong> với số tiền <strong>{{ formatCurrency(form.amount) }}</strong> trong Sổ nợ.
+                </span>
+              </div>
+            </el-form-item>
           </div>
+
+          <!-- Loan Due Date (If Loan or Borrow) -->
+          <el-form-item v-if="isLoanOrBorrowType" label="Hạn trả nợ (tùy chọn)">
+            <el-date-picker
+              v-model="form.dueDate"
+              type="date"
+              placeholder="Chọn ngày hẹn trả nợ"
+              value-format="YYYY-MM-DD"
+              style="width: 100%"
+            />
+          </el-form-item>
 
           <!-- 4. Date & Time Picker -->
           <el-form-item label="Thời gian giao dịch" prop="transactionDate">
@@ -252,6 +307,49 @@
         </el-form>
       </el-card>
     </div>
+
+    <!-- Quick Create Person Dialog -->
+    <el-dialog
+      v-model="showQuickCreatePerson"
+      title="Thêm người liên hệ mới"
+      width="420px"
+      append-to-body
+      destroy-on-close
+    >
+      <el-form :model="newPersonForm" label-position="top">
+        <el-form-item label="Họ và tên" required>
+          <el-input
+            v-model="newPersonForm.name"
+            placeholder="Ví dụ: Nguyễn Văn A, Anh Minh..."
+            autofocus
+            @keyup.enter="handleQuickCreatePerson"
+          />
+        </el-form-item>
+        <el-form-item label="Số điện thoại">
+          <el-input
+            v-model="newPersonForm.phone"
+            placeholder="Ví dụ: 0912345678"
+            @keyup.enter="handleQuickCreatePerson"
+          />
+        </el-form-item>
+        <el-form-item label="Ghi chú">
+          <el-input
+            v-model="newPersonForm.note"
+            type="textarea"
+            :rows="2"
+            placeholder="Ví dụ: Bạn đại học, đồng nghiệp công ty..."
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <el-button @click="showQuickCreatePerson = false">Hủy</el-button>
+          <el-button type="primary" :loading="creatingPerson" @click="handleQuickCreatePerson">
+            Lưu người này
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -259,11 +357,12 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { FormInstance, FormRules } from 'element-plus'
-import { ArrowLeft, Top, Bottom, Switch } from '@element-plus/icons-vue'
+import { ArrowLeft, Top, Bottom, Switch, Plus } from '@element-plus/icons-vue'
 import { useTransactionStore } from '@/stores/transaction'
 import { useAccountStore } from '@/stores/account'
 import { useCategoryStore } from '@/stores/category'
 import { useDebtStore } from '@/stores/debt'
+import { usePersonStore } from '@/stores/person'
 import type { CreateTransactionDto, TransactionDirection } from '@/types/transaction'
 import type { DebtAllocation } from '@/types/debt'
 import { formatCurrency } from '@/utils/currency'
@@ -277,6 +376,7 @@ const transactionStore = useTransactionStore()
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
 const debtStore = useDebtStore()
+const personStore = usePersonStore()
 
 const formRef = ref<FormInstance>()
 const loading = ref(false)
@@ -284,6 +384,38 @@ const loading = ref(false)
 const isEdit = computed(() => !!route.params.id && route.params.id !== 'create')
 const isBankTransaction = ref(false)
 const bankDirection = ref<TransactionDirection | null>(null)
+
+const showQuickCreatePerson = ref(false)
+const creatingPerson = ref(false)
+const newPersonForm = reactive({
+  name: '',
+  phone: '',
+  note: ''
+})
+
+async function handleQuickCreatePerson() {
+  if (!newPersonForm.name.trim()) {
+    ElMessage.warning('Vui lòng nhập họ và tên người liên hệ')
+    return
+  }
+  creatingPerson.value = true
+  try {
+    const created = await personStore.createPerson({
+      name: newPersonForm.name.trim(),
+      phone: newPersonForm.phone.trim() || undefined,
+      note: newPersonForm.note.trim() || undefined
+    })
+    form.personId = created.id
+    showQuickCreatePerson.value = false
+    newPersonForm.name = ''
+    newPersonForm.phone = ''
+    newPersonForm.note = ''
+  } catch (err: any) {
+    ElMessage.error(err.response?.data?.message || 'Không thể tạo người liên hệ')
+  } finally {
+    creatingPerson.value = false
+  }
+}
 
 interface FormState extends CreateTransactionDto {
   originalDescription?: string
@@ -307,8 +439,11 @@ const form = reactive<FormState>({
   accountId: '',
   toAccountId: '',
   categoryId: '',
+  personId: '',
+  dueDate: undefined,
   debtId: '',
   debtIds: [] as string[],
+  debtAllocations: [] as DebtAllocation[],
   transactionDate: new Date().toISOString().slice(0, 19),
   description: '',
   originalDescription: '',
@@ -343,6 +478,18 @@ const rules: FormRules = {
       trigger: 'change'
     }
   ],
+  personId: [
+    {
+      validator: (_rule, val, callback) => {
+        if (isLoanOrBorrowType.value && !val) {
+          callback(new Error(form.type === 'LOAN_GIVEN' ? 'Vui lòng chọn người vay tiền' : 'Vui lòng chọn người cho vay'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'change'
+    }
+  ],
   transactionDate: [{ required: true, message: 'Vui lòng chọn ngày giờ', trigger: 'change' }],
   description: [{ required: true, message: 'Vui lòng nhập nội dung mô tả', trigger: 'blur' }]
 }
@@ -353,9 +500,14 @@ const availableCategories = computed(() => {
   return []
 })
 
-const isDebtRelatedType = computed(() => {
-  return ['BORROW_RECEIVED', 'LOAN_GIVEN', 'DEBT_REPAYMENT', 'DEBT_COLLECTION'].includes(form.type)
+const isDebtSettlementType = computed(() => {
+  return ['DEBT_REPAYMENT', 'DEBT_COLLECTION'].includes(form.type)
 })
+
+const isLoanOrBorrowType = computed(() => {
+  return ['LOAN_GIVEN', 'BORROW_RECEIVED'].includes(form.type)
+})
+
 
 const availableDebts = computed(() => {
   if (form.type === 'DEBT_COLLECTION') {
@@ -377,6 +529,7 @@ const selectedDebtsTotalRemaining = computed(() => {
 function handleTypeChange(val: any) {
   if (val !== 'EXPENSE') {
     form.allocations = []
+    form.debtAllocations = []
   }
   if (val !== 'INCOME' && val !== 'EXPENSE') {
     form.categoryId = undefined
@@ -384,9 +537,13 @@ function handleTypeChange(val: any) {
   if (val !== 'TRANSFER') {
     form.toAccountId = ''
   }
-  if (!isDebtRelatedType.value) {
+  if (!isDebtSettlementType.value) {
     form.debtId = ''
     form.debtIds = []
+  }
+  if (!isLoanOrBorrowType.value) {
+    form.personId = ''
+    form.dueDate = undefined
   }
 }
 
@@ -413,11 +570,13 @@ async function loadTransaction() {
       form.categoryId = tx.categoryId || ''
       form.debtIds = (tx as any).debtIds || ((tx as any).debtId ? [(tx as any).debtId] : [])
       form.debtId = form.debtIds && form.debtIds.length > 0 ? form.debtIds[0] : ''
+      form.personId = (tx as any).personId || ''
+      form.dueDate = (tx as any).dueDate || undefined
       form.description = tx.description
       form.originalDescription = tx.originalDescription
       form.note = tx.note || ''
       form.transactionDate = tx.transactionDate
-      form.allocations = tx.allocations || []
+      form.allocations = (tx as any).debtAllocations || (tx as any).allocations || []
       isBankTransaction.value = tx.source === 'BANK'
       bankDirection.value = tx.direction || (tx.type === 'INCOME' ? 'IN' : 'OUT')
     }
@@ -437,6 +596,19 @@ async function handleSubmit() {
           ElMessage.error('Tổng số tiền phân chia người khác nợ không được vượt quá số tiền chi tiêu!')
           return
         }
+        form.debtAllocations = form.allocations.map(a => ({
+          personId: a.personId,
+          allocatedAmount: a.allocatedAmount,
+          note: a.note || undefined,
+          dueDate: a.dueDate || undefined
+        }))
+      } else {
+        form.debtAllocations = undefined
+      }
+
+      if (form.type !== 'LOAN_GIVEN' && form.type !== 'BORROW_RECEIVED') {
+        form.personId = undefined
+        form.dueDate = undefined
       }
 
       if (form.debtIds && form.debtIds.length > 0) {
@@ -469,7 +641,8 @@ onMounted(async () => {
   await Promise.all([
     accountStore.fetchAccounts(),
     categoryStore.fetchCategories(),
-    debtStore.fetchDebts()
+    debtStore.fetchDebts(),
+    personStore.fetchPersons()
   ])
   loadTransaction()
 })

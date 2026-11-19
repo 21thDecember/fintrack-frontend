@@ -17,6 +17,7 @@ export interface DebtAllocation {
   personName?: string
   allocatedAmount: number
   note?: string
+  dueDate?: string
 }
 
 export interface Debt {

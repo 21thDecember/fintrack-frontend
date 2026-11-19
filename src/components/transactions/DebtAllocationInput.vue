@@ -3,10 +3,13 @@
     <div class="section-header" @click="isExpanded = !isExpanded">
       <div class="header-title">
         <el-icon :size="18" class="header-icon"><Share /></el-icon>
-        <span class="font-semibold">Phân chia chi phí / Người nợ tiền</span>
+        <span class="font-semibold">Chia sẻ chi phí / Ghi nợ bạn bè (Split Bill)</span>
         <el-tag v-if="allocations.length > 0" size="small" type="success" effect="plain" round>
-          {{ allocations.length }} người
+          {{ allocations.length }} người nợ ({{ formatCurrency(totalAllocated) }})
         </el-tag>
+        <span v-if="allocations.length > 0 && yourShare >= 0" class="your-share-badge">
+          • Thực chi của bạn: <strong>{{ formatCurrency(yourShare) }}</strong>
+        </span>
       </div>
       <el-icon class="toggle-icon" :class="{ 'is-active': isExpanded }">
         <ArrowDown />
@@ -15,11 +18,14 @@
 
     <div v-show="isExpanded" class="section-body">
       <p class="description-text">
-        Chia sẻ hóa đơn này với bạn bè hoặc đồng nghiệp. Hệ thống sẽ tự động tạo khoản phải thu (RECEIVABLE) tương ứng.
+        Khi bạn thanh toán giùm cả nhóm (ví dụ ăn uống, mua sắm...), hệ thống sẽ tự động ghi nhận các khoản nợ <strong>Phải thu (RECEIVABLE)</strong> tương ứng cho bạn bè trong Sổ nợ.
       </p>
 
       <!-- Allocation Rows -->
       <div class="allocation-list">
+        <div v-if="allocations.length === 0" class="empty-allocation-notice">
+          <span>Chưa có người nào được phân bổ chia tiền. Bấm nút <strong>"⚡ Chia đều hóa đơn"</strong> hoặc <strong>"Thêm người chia"</strong> bên dưới.</span>
+        </div>
         <div v-for="(item, index) in allocations" :key="index" class="allocation-item">
           <div class="item-grid">
             <!-- Person Select -->
@@ -49,7 +55,7 @@
                 v-model="item.allocatedAmount"
                 :min="0"
                 :max="transactionAmount"
-                :step="50000"
+                :step="10000"
                 controls-position="right"
                 placeholder="Số tiền chia"
                 style="width: 100%"
@@ -80,6 +86,9 @@
 
       <!-- Actions & Quick Add -->
       <div class="allocation-actions">
+        <el-button type="success" plain size="small" :icon="Operation" @click="openSplitDialog">
+          ⚡ Chia đều hóa đơn
+        </el-button>
         <el-button type="primary" plain size="small" :icon="Plus" @click="addAllocation">
           Thêm người chia
         </el-button>
@@ -91,11 +100,15 @@
       <!-- Summary Balance Bar -->
       <div class="allocation-summary" :class="{ 'is-overflow': totalAllocated > transactionAmount }">
         <div class="summary-item">
-          <span>Tổng phân bổ:</span>
-          <strong>{{ formatCurrency(totalAllocated) }}</strong>
+          <span>Tổng hóa đơn:</span>
+          <strong>{{ formatCurrency(transactionAmount) }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Bạn bè nợ lại:</span>
+          <strong style="color: #3B82F6;">+{{ formatCurrency(totalAllocated) }}</strong>
         </div>
         <div class="summary-item your-share">
-          <span>Phần của bạn:</span>
+          <span>Thực tế bạn chi:</span>
           <strong :class="yourShare >= 0 ? 'text-income' : 'text-expense'">
             {{ formatCurrency(yourShare) }}
           </strong>
@@ -107,6 +120,80 @@
         <span>Tổng số tiền phân bổ vượt quá tổng hóa đơn!</span>
       </div>
     </div>
+
+    <!-- Quick Split Equal Dialog -->
+    <el-dialog
+      v-model="showSplitDialog"
+      title="⚡ Chia đều hóa đơn (Split Bill)"
+      width="460px"
+      append-to-body
+    >
+      <div style="font-size: 13px; color: var(--app-text-muted); margin-bottom: 16px;">
+        Chọn danh sách bạn bè cùng ăn uống / chi tiêu. Hệ thống sẽ tự động tính phần tiền đều nhau cho mỗi người.
+      </div>
+
+      <el-form label-position="top">
+        <el-form-item label="Chọn bạn bè cùng chia tiền">
+          <el-select
+            v-model="splitSelectedPersonIds"
+            multiple
+            filterable
+            collapse-tags
+            collapse-tags-tooltip
+            placeholder="Chọn những người bạn cùng chia..."
+            style="width: 100%"
+          >
+            <el-option
+              v-for="p in personStore.persons"
+              :key="p.id"
+              :label="p.name"
+              :value="p.id"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item>
+          <el-checkbox v-model="splitIncludeMyself">
+            <strong>Bao gồm cả tôi (Người thanh toán hóa đơn)</strong>
+          </el-checkbox>
+        </el-form-item>
+
+        <!-- Preview Calculation -->
+        <div v-if="splitTotalPeople > 0" class="split-preview-box">
+          <div class="preview-row">
+            <span>Tổng hóa đơn:</span>
+            <strong>{{ formatCurrency(transactionAmount) }}</strong>
+          </div>
+          <div class="preview-row">
+            <span>Số người chia:</span>
+            <strong>{{ splitTotalPeople }} người {{ splitIncludeMyself ? '(Bạn + ' + splitSelectedPersonIds.length + ' bạn)' : '' }}</strong>
+          </div>
+          <div class="preview-row highlight">
+            <span>Mỗi người chịu:</span>
+            <span class="text-primary font-bold">{{ formatCurrency(splitAmountPerPerson) }}</span>
+          </div>
+          <div v-if="splitIncludeMyself" class="preview-row text-success">
+            <span>Thực tế bạn chi:</span>
+            <strong>{{ formatCurrency(splitAmountPerPerson) }}</strong>
+          </div>
+          <div class="preview-row text-danger">
+            <span>Ghi nợ bạn bè ({{ splitSelectedPersonIds.length }} người):</span>
+            <strong>+{{ formatCurrency(splitAmountPerPerson * splitSelectedPersonIds.length) }}</strong>
+          </div>
+        </div>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="showSplitDialog = false">Hủy</el-button>
+        <el-button
+          type="primary"
+          :disabled="splitSelectedPersonIds.length === 0"
+          @click="applySplitEqual"
+        >
+          Áp dụng chia đều
+        </el-button>
+      </template>
+    </el-dialog>
 
     <!-- Quick Create Person Dialog -->
     <el-dialog
@@ -138,7 +225,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { Plus, Delete, Share, ArrowDown, User, Warning } from '@element-plus/icons-vue'
+import { Plus, Delete, Share, ArrowDown, User, Warning, Operation } from '@element-plus/icons-vue'
 import { usePersonStore } from '@/stores/person'
 import type { DebtAllocation } from '@/types/debt'
 import { formatCurrency } from '@/utils/currency'
@@ -155,8 +242,12 @@ const emit = defineEmits<{
 }>()
 
 const personStore = usePersonStore()
-const isExpanded = ref(props.modelValue && props.modelValue.length > 0)
+const isExpanded = ref(true)
 const showQuickCreatePerson = ref(false)
+
+const showSplitDialog = ref(false)
+const splitSelectedPersonIds = ref<string[]>([])
+const splitIncludeMyself = ref(true)
 
 const allocations = computed({
   get: () => props.modelValue || [],
@@ -171,11 +262,45 @@ const yourShare = computed(() => {
   return props.transactionAmount - totalAllocated.value
 })
 
+const splitTotalPeople = computed(() => {
+  return splitSelectedPersonIds.value.length + (splitIncludeMyself.value ? 1 : 0)
+})
+
+const splitAmountPerPerson = computed(() => {
+  if (splitTotalPeople.value === 0) return 0
+  return Math.round(props.transactionAmount / splitTotalPeople.value)
+})
+
 const newPersonForm = reactive({
   name: '',
   phone: '',
   note: ''
 })
+
+function openSplitDialog() {
+  splitSelectedPersonIds.value = allocations.value.map(a => a.personId).filter(Boolean)
+  showSplitDialog.value = true
+}
+
+function applySplitEqual() {
+  if (splitSelectedPersonIds.value.length === 0) return
+
+  const perPerson = splitAmountPerPerson.value
+  const newAllocations: DebtAllocation[] = splitSelectedPersonIds.value.map(pId => {
+    const p = personStore.persons.find(x => x.id === pId)
+    return {
+      personId: pId,
+      personName: p?.name || '',
+      allocatedAmount: perPerson,
+      note: 'Chia đều hóa đơn'
+    }
+  })
+
+  allocations.value = newAllocations
+  isExpanded.value = true
+  showSplitDialog.value = false
+  ElMessage.success(`Đã chia đều cho ${newAllocations.length} người (${formatCurrency(perPerson)}/người)`)
+}
 
 function addAllocation() {
   const current = [...allocations.value]
@@ -219,6 +344,16 @@ async function handleCreatePerson() {
     if (emptyRow) {
       emptyRow.personId = created.id
       emptyRow.personName = created.name
+    } else {
+      allocations.value = [
+        ...allocations.value,
+        {
+          personId: created.id,
+          personName: created.name,
+          allocatedAmount: 0,
+          note: ''
+        }
+      ]
     }
   } catch (err) {
     // Handled in store
@@ -252,11 +387,17 @@ onMounted(() => {
     .header-title {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
       gap: 8px;
       font-size: 0.9375rem;
 
       .header-icon {
         color: #3B82F6;
+      }
+
+      .your-share-badge {
+        font-size: 0.8125rem;
+        color: #10B981;
       }
     }
 
@@ -275,6 +416,16 @@ onMounted(() => {
       font-size: 0.8125rem;
       color: var(--app-text-muted);
       margin-bottom: 14px;
+    }
+
+    .empty-allocation-notice {
+      padding: 12px 14px;
+      background: rgba(0, 0, 0, 0.02);
+      border: 1px dashed var(--app-card-border);
+      border-radius: 8px;
+      font-size: 0.8125rem;
+      color: var(--app-text-muted);
+      margin-bottom: 12px;
     }
   }
 
@@ -311,12 +462,15 @@ onMounted(() => {
     display: flex;
     gap: 12px;
     margin-top: 12px;
+    flex-wrap: wrap;
   }
 
   .allocation-summary {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
     padding: 12px 16px;
     border-radius: 8px;
     background-color: var(--el-fill-color-light);
@@ -337,6 +491,35 @@ onMounted(() => {
     font-size: 0.8125rem;
     margin-top: 8px;
     font-weight: 500;
+  }
+}
+
+.split-preview-box {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+
+  .preview-row {
+    display: flex;
+    justify-content: space-between;
+
+    &.highlight {
+      padding-top: 6px;
+      border-top: 1px dashed rgba(59, 130, 246, 0.2);
+      font-size: 14px;
+    }
+    &.text-success {
+      color: #10B981;
+    }
+    &.text-danger {
+      color: #EF4444;
+    }
   }
 }
 </style>
