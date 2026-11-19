@@ -1,0 +1,129 @@
+:root {
+  --el-color-primary: #10B981;
+  --el-color-primary-light-3: #6EE7B7;
+  --el-color-primary-light-5: #A7F3D0;
+  --el-color-primary-light-7: #D1FAE5;
+  --el-color-primary-light-8: #ECFDF5;
+  --el-color-primary-light-9: #F0FDF4;
+  --el-color-primary-dark-2: #059669;
+
+  --el-color-success: #10B981;
+  --el-color-danger: #EF4444;
+  --el-color-warning: #F59E0B;
+  --el-color-info: #6366F1;
+
+  --el-font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --app-bg: #F8FAFC;
+  --app-card-bg: #FFFFFF;
+  --app-card-border: #E2E8F0;
+  --app-text: #0F172A;
+  --app-text-muted: #64748B;
+  --app-sidebar-bg: #FFFFFF;
+  --app-sidebar-border: #E2E8F0;
+}
+
+html.dark {
+  --app-bg: #0B0F19;
+  --app-card-bg: #111827;
+  --app-card-border: #1F2937;
+  --app-text: #F9FAFB;
+  --app-text-muted: #9CA3AF;
+  --app-sidebar-bg: #111827;
+  --app-sidebar-border: #1F2937;
+
+  --el-bg-color: #0B0F19;
+  --el-bg-color-overlay: #111827;
+  --el-text-color-primary: #F9FAFB;
+  --el-text-color-regular: #D1D5DB;
+  --el-border-color: #1F2937;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--el-font-family);
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+// Financial Color Utilities
+.text-income {
+  color: #10B981 !important;
+}
+
+.text-expense {
+  color: #EF4444 !important;
+}
+
+.text-transfer {
+  color: #3B82F6 !important;
+}
+
+.bg-income-subtle {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+}
+
+.bg-expense-subtle {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+// Card Customization
+.el-card {
+  border-radius: 12px !important;
+  border: 1px solid var(--app-card-border) !important;
+  background-color: var(--app-card-bg) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.25s ease;
+
+  &:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+  }
+}
+
+// Button Customization
+.el-button {
+  border-radius: 8px !important;
+  font-weight: 500;
+}
+
+// Table Customization
+.el-table {
+  border-radius: 10px;
+  overflow: hidden;
+  --el-table-header-bg-color: #F8FAFC;
+  --el-table-row-hover-bg-color: #F1F5F9;
+
+  html.dark & {
+    --el-table-header-bg-color: #1F2937;
+    --el-table-row-hover-bg-color: #374151;
+  }
+}
+
+// Custom Scrollbar
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
