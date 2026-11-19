@@ -16,7 +16,7 @@
         class="bank-notice-alert"
       >
         <template #title>
-          <span>Giao dịch này được đồng bộ từ sao kê Ngân hàng. Các trường số tiền, tài khoản và thời gian được khóa để đảm bảo toàn vẹn dữ liệu sổ cái.</span>
+          <span>Giao dịch đồng bộ từ sao kê Ngân hàng. Số tiền, tài khoản và thời gian được cố định. Bạn có thể thay đổi loại giao dịch ({{ bankDirection === 'IN' ? 'Thu nhập, Thu hồi nợ, Đi vay' : 'Chi tiêu, Trả nợ, Cho vay' }}), gắn khoản nợ hoặc cập nhật nội dung.</span>
         </template>
       </el-alert>
 
@@ -33,23 +33,22 @@
           <el-form-item label="Loại giao dịch" prop="type">
             <el-radio-group
               v-model="form.type"
-              :disabled="isBankTransaction"
               class="type-radio-group"
               @change="handleTypeChange"
             >
-              <el-radio-button label="EXPENSE">
+              <el-radio-button label="EXPENSE" :disabled="isTypeDisabled('EXPENSE')">
                 <el-icon class="mr-1"><Top /></el-icon> Chi tiêu
               </el-radio-button>
-              <el-radio-button label="INCOME">
+              <el-radio-button label="INCOME" :disabled="isTypeDisabled('INCOME')">
                 <el-icon class="mr-1"><Bottom /></el-icon> Thu nhập
               </el-radio-button>
-              <el-radio-button label="TRANSFER">
+              <el-radio-button label="TRANSFER" :disabled="isTypeDisabled('TRANSFER')">
                 <el-icon class="mr-1"><Switch /></el-icon> Chuyển khoản
               </el-radio-button>
-              <el-radio-button label="LOAN_GIVEN">Cho vay</el-radio-button>
-              <el-radio-button label="BORROW_RECEIVED">Đi vay</el-radio-button>
-              <el-radio-button label="DEBT_COLLECTION">Thu hồi nợ</el-radio-button>
-              <el-radio-button label="DEBT_REPAYMENT">Trả nợ</el-radio-button>
+              <el-radio-button label="LOAN_GIVEN" :disabled="isTypeDisabled('LOAN_GIVEN')">Cho vay</el-radio-button>
+              <el-radio-button label="BORROW_RECEIVED" :disabled="isTypeDisabled('BORROW_RECEIVED')">Đi vay</el-radio-button>
+              <el-radio-button label="DEBT_COLLECTION" :disabled="isTypeDisabled('DEBT_COLLECTION')">Thu hồi nợ</el-radio-button>
+              <el-radio-button label="DEBT_REPAYMENT" :disabled="isTypeDisabled('DEBT_REPAYMENT')">Trả nợ</el-radio-button>
             </el-radio-group>
           </el-form-item>
 
@@ -244,7 +243,7 @@ import { useTransactionStore } from '@/stores/transaction'
 import { useAccountStore } from '@/stores/account'
 import { useCategoryStore } from '@/stores/category'
 import { useDebtStore } from '@/stores/debt'
-import type { CreateTransactionDto } from '@/types/transaction'
+import type { CreateTransactionDto, TransactionDirection } from '@/types/transaction'
 import type { DebtAllocation } from '@/types/debt'
 import { formatCurrency } from '@/utils/currency'
 import { ElMessage } from 'element-plus'
@@ -263,10 +262,22 @@ const loading = ref(false)
 
 const isEdit = computed(() => !!route.params.id && route.params.id !== 'create')
 const isBankTransaction = ref(false)
+const bankDirection = ref<TransactionDirection | null>(null)
 
 interface FormState extends CreateTransactionDto {
   originalDescription?: string
   allocations: DebtAllocation[]
+}
+
+function isTypeDisabled(type: string): boolean {
+  if (!isBankTransaction.value) return false
+  if (bankDirection.value === 'IN') {
+    return !['INCOME', 'DEBT_COLLECTION', 'BORROW_RECEIVED'].includes(type)
+  }
+  if (bankDirection.value === 'OUT') {
+    return !['EXPENSE', 'DEBT_REPAYMENT', 'LOAN_GIVEN'].includes(type)
+  }
+  return false
 }
 
 const form = reactive<FormState>({
@@ -338,8 +349,14 @@ function handleTypeChange(val: any) {
   if (val !== 'EXPENSE') {
     form.allocations = []
   }
-  if (val === 'TRANSFER') {
+  if (val !== 'INCOME' && val !== 'EXPENSE') {
     form.categoryId = undefined
+  }
+  if (val !== 'TRANSFER') {
+    form.toAccountId = ''
+  }
+  if (!isDebtRelatedType.value) {
+    form.debtId = ''
   }
 }
 
@@ -353,19 +370,25 @@ async function loadTransaction() {
 
   const id = route.params.id as string
   try {
-    const tx = transactionStore.transactions.find(t => t.id === id)
+    let tx = transactionStore.transactions.find(t => t.id === id)
+    if (!tx) {
+      await transactionStore.fetchTransactions(1)
+      tx = transactionStore.transactions.find(t => t.id === id)
+    }
     if (tx) {
       form.type = tx.type
       form.amount = tx.amount
       form.accountId = tx.accountId
       form.toAccountId = tx.toAccountId || ''
       form.categoryId = tx.categoryId || ''
+      form.debtId = (tx as any).debtId || ''
       form.description = tx.description
       form.originalDescription = tx.originalDescription
       form.note = tx.note || ''
       form.transactionDate = tx.transactionDate
       form.allocations = tx.allocations || []
       isBankTransaction.value = tx.source === 'BANK'
+      bankDirection.value = tx.direction || (tx.type === 'INCOME' ? 'IN' : 'OUT')
     }
   } catch (err) {
     console.error('Failed to load transaction detail', err)
@@ -387,6 +410,9 @@ async function handleSubmit() {
 
       loading.value = true
       try {
+        if (form.type !== 'INCOME' && form.type !== 'EXPENSE') {
+          form.categoryId = undefined
+        }
         if (isEdit.value) {
           await transactionStore.updateTransaction(route.params.id as string, form)
         } else {
