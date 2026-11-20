@@ -1,10 +1,16 @@
 import apiClient from './client'
 import type { WeeklyReportData, MonthlyReportData, CategoryBreakdownItem } from '@/types/report'
 import type { ApiResponse } from '@/types/api'
+import dayjs from 'dayjs'
+import isoWeek from 'dayjs/plugin/isoWeek'
+
+dayjs.extend(isoWeek)
 
 export const reportApi = {
-  getWeeklyReport: async (week?: number, year?: number): Promise<WeeklyReportData> => {
-    const res = await apiClient.get<ApiResponse<any>>('/reports/weekly')
+  getWeeklyReport: async (date?: string): Promise<WeeklyReportData> => {
+    const res = await apiClient.get<ApiResponse<any>>('/reports/weekly', {
+      params: date ? { date } : {}
+    })
     const d = res.data.data || {}
 
     const categories: CategoryBreakdownItem[] = (d.categoryBreakdown || []).map((c: any) => ({
@@ -22,9 +28,10 @@ export const reportApi = {
     const personalExpense = d.personalExpense || 0
     const netCashFlow = d.netCashFlow || 0
 
+    const sDate = d.startDate ? dayjs(d.startDate) : dayjs(date)
     return {
-      week: week || 46,
-      year: year || 2026,
+      week: sDate.isoWeek(),
+      year: sDate.isoWeekYear(),
       startDate: d.startDate || new Date().toISOString(),
       endDate: d.endDate || new Date().toISOString(),
       totalIncome,
@@ -44,8 +51,9 @@ export const reportApi = {
   },
 
   getMonthlyReport: async (month?: number, year?: number): Promise<MonthlyReportData> => {
-    const m = month || 11
-    const y = year || 2026
+    const now = dayjs()
+    const m = month || (now.month() + 1)
+    const y = year || now.year()
     const res = await apiClient.get<ApiResponse<any>>('/reports/monthly', {
       params: { month: m, year: y }
     })
@@ -84,8 +92,8 @@ export const reportApi = {
       topExpenseCategories: categories,
       savingsRate,
       netWorthTrend: [
-        { period: `T${m - 2 > 0 ? m - 2 : 10}`, income: 0, expense: 0, netWorth: 0 },
-        { period: `T${m - 1 > 0 ? m - 1 : 11}`, income: d.previousMonthIncome || 0, expense: d.previousMonthExpense || 0, netWorth: 0 },
+        { period: `T${m - 2 <= 0 ? m - 2 + 12 : m - 2}`, income: 0, expense: 0, netWorth: 0 },
+        { period: `T${m - 1 <= 0 ? m - 1 + 12 : m - 1}`, income: d.previousMonthIncome || 0, expense: d.previousMonthExpense || 0, netWorth: 0 },
         { period: `T${m}`, income: totalIncome, expense: grossExpense, netWorth: 0 }
       ]
     }

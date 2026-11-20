@@ -6,12 +6,105 @@
         <el-tab-pane label="Báo cáo Tháng" name="monthly" />
       </el-tabs>
 
+      <!-- Date Period Navigation Controls -->
       <div class="date-controls">
-        <el-tag size="large" type="primary" effect="plain" class="period-tag">
-          <el-icon><Calendar /></el-icon>
-          <span v-if="activeTab === 'weekly'">Tuần 46/2026 (12/11 - 18/11)</span>
-          <span v-else>Tháng 11/2026</span>
-        </el-tag>
+        <!-- Weekly Navigator -->
+        <div v-if="activeTab === 'weekly'" class="period-navigator">
+          <div class="nav-arrow-group">
+            <el-button
+              circle
+              size="small"
+              :icon="ArrowLeft"
+              @click="changeWeek(-1)"
+              title="Tuần trước"
+            />
+            <el-button
+              circle
+              size="small"
+              :icon="ArrowRight"
+              :disabled="isCurrentWeek"
+              @click="changeWeek(1)"
+              title="Tuần sau"
+            />
+          </div>
+
+          <el-date-picker
+            v-model="selectedWeekDate"
+            type="week"
+            format="[Tuần] ww/YYYY"
+            value-format="YYYY-MM-DD"
+            placeholder="Chọn tuần"
+            :disabled-date="disabledFutureWeeks"
+            :clearable="false"
+            class="report-picker"
+            @change="handleWeekChange"
+          />
+
+          <el-tag size="large" type="primary" effect="plain" class="period-tag">
+            <el-icon><Calendar /></el-icon>
+            <span>{{ currentWeekDisplayLabel }}</span>
+          </el-tag>
+
+          <el-button
+            v-if="!isCurrentWeek"
+            size="small"
+            type="primary"
+            plain
+            round
+            @click="goToCurrentWeek"
+          >
+            Tuần này
+          </el-button>
+        </div>
+
+        <!-- Monthly Navigator -->
+        <div v-else class="period-navigator">
+          <div class="nav-arrow-group">
+            <el-button
+              circle
+              size="small"
+              :icon="ArrowLeft"
+              @click="changeMonth(-1)"
+              title="Tháng trước"
+            />
+            <el-button
+              circle
+              size="small"
+              :icon="ArrowRight"
+              :disabled="isCurrentMonth"
+              @click="changeMonth(1)"
+              title="Tháng sau"
+            />
+          </div>
+
+          <el-date-picker
+            v-model="selectedMonthDate"
+            type="month"
+            format="[Tháng] MM/YYYY"
+            value-format="YYYY-MM"
+            placeholder="Chọn tháng"
+            :disabled-date="disabledFutureMonths"
+            :clearable="false"
+            class="report-picker"
+            @change="handleMonthChange"
+          />
+
+          <el-tag size="large" type="primary" effect="plain" class="period-tag">
+            <el-icon><Calendar /></el-icon>
+            <span>Tháng {{ currentMonthDisplayLabel }}</span>
+          </el-tag>
+
+          <el-button
+            v-if="!isCurrentMonth"
+            size="small"
+            type="primary"
+            plain
+            round
+            @click="goToCurrentMonth"
+          >
+            Tháng này
+          </el-button>
+        </div>
       </div>
     </div>
 
@@ -149,9 +242,9 @@
         <!-- Monthly Comparison Cards -->
         <div class="cards-grid">
           <StatCard
-            title="Thu nhập tháng 11"
+            :title="`Thu nhập tháng ${monthlyData.month}`"
             :value="monthlyData.totalIncome"
-            subtitle="So với tháng 10"
+            :subtitle="`So với tháng ${previousMonthName}`"
             :trend="monthlyData.comparison.incomeChangePercentage"
             :icon="Bottom"
             icon-bg="rgba(16, 185, 129, 0.12)"
@@ -159,9 +252,9 @@
           />
 
           <StatCard
-            title="Chi tiêu tháng 11"
+            :title="`Chi tiêu tháng ${monthlyData.month}`"
             :value="monthlyData.totalExpense"
-            subtitle="So với tháng 10"
+            :subtitle="`So với tháng ${previousMonthName}`"
             :trend="monthlyData.comparison.expenseChangePercentage"
             :icon="Top"
             icon-bg="rgba(239, 68, 68, 0.12)"
@@ -198,7 +291,10 @@
               <span class="font-bold">Top danh mục chi tiêu nhiều nhất</span>
             </template>
 
-            <div class="top-categories-list">
+            <div v-if="!monthlyData.topExpenseCategories || monthlyData.topExpenseCategories.length === 0" class="empty-state">
+              <el-empty description="Không có chi tiêu nào trong tháng này" :image-size="80" />
+            </div>
+            <div v-else class="top-categories-list">
               <div
                 v-for="(cat, idx) in monthlyData.topExpenseCategories"
                 :key="cat.categoryId"
@@ -253,15 +349,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
   Calendar,
   Bottom,
   Top,
   Download,
   TrendCharts,
-  Coin
+  Coin,
+  ArrowLeft,
+  ArrowRight
 } from '@element-plus/icons-vue'
+import dayjs from 'dayjs'
+import isoWeek from 'dayjs/plugin/isoWeek'
+
+dayjs.extend(isoWeek)
+
 import { reportApi } from '@/api/reportApi'
 import type { WeeklyReportData, MonthlyReportData } from '@/types/report'
 import { formatCurrency, formatCompactCurrency } from '@/utils/currency'
@@ -274,19 +377,88 @@ const loading = ref(false)
 const weeklyData = ref<WeeklyReportData | null>(null)
 const monthlyData = ref<MonthlyReportData | null>(null)
 
+// Current selected week and month
+const selectedWeekDate = ref<string>(dayjs().format('YYYY-MM-DD'))
+const selectedMonthDate = ref<string>(dayjs().format('YYYY-MM'))
+
+const isCurrentWeek = computed(() => {
+  return dayjs(selectedWeekDate.value).isSame(dayjs(), 'isoWeek')
+})
+
+const isCurrentMonth = computed(() => {
+  return dayjs(selectedMonthDate.value).isSame(dayjs(), 'month')
+})
+
+const currentWeekDisplayLabel = computed(() => {
+  if (weeklyData.value?.startDate && weeklyData.value?.endDate) {
+    const s = dayjs(weeklyData.value.startDate)
+    const e = dayjs(weeklyData.value.endDate)
+    return `Tuần ${s.isoWeek()}/${s.isoWeekYear()} (${s.format('DD/MM')} - ${e.format('DD/MM')})`
+  }
+  const d = dayjs(selectedWeekDate.value)
+  return `Tuần ${d.isoWeek()}/${d.isoWeekYear()} (${d.startOf('isoWeek').format('DD/MM')} - ${d.endOf('isoWeek').format('DD/MM')})`
+})
+
+const currentMonthDisplayLabel = computed(() => {
+  const d = dayjs(selectedMonthDate.value)
+  return `${d.format('MM/YYYY')}`
+})
+
+const previousMonthName = computed(() => {
+  const d = dayjs(selectedMonthDate.value).subtract(1, 'month')
+  return d.format('MM')
+})
+
+function disabledFutureWeeks(time: Date) {
+  return dayjs(time).isAfter(dayjs().endOf('isoWeek'), 'day')
+}
+
+function disabledFutureMonths(time: Date) {
+  return dayjs(time).isAfter(dayjs().endOf('month'), 'day')
+}
+
 async function loadReports() {
   loading.value = true
   try {
     if (activeTab.value === 'weekly') {
-      weeklyData.value = await reportApi.getWeeklyReport(46, 2026)
+      weeklyData.value = await reportApi.getWeeklyReport(selectedWeekDate.value)
     } else {
-      monthlyData.value = await reportApi.getMonthlyReport(11, 2026)
+      const d = dayjs(selectedMonthDate.value)
+      monthlyData.value = await reportApi.getMonthlyReport(d.month() + 1, d.year())
     }
   } catch (err) {
     console.error('Failed to load reports', err)
   } finally {
     loading.value = false
   }
+}
+
+function changeWeek(delta: number) {
+  selectedWeekDate.value = dayjs(selectedWeekDate.value).add(delta, 'week').format('YYYY-MM-DD')
+  loadReports()
+}
+
+function handleWeekChange() {
+  loadReports()
+}
+
+function goToCurrentWeek() {
+  selectedWeekDate.value = dayjs().format('YYYY-MM-DD')
+  loadReports()
+}
+
+function changeMonth(delta: number) {
+  selectedMonthDate.value = dayjs(selectedMonthDate.value).add(delta, 'month').format('YYYY-MM')
+  loadReports()
+}
+
+function handleMonthChange() {
+  loadReports()
+}
+
+function goToCurrentMonth() {
+  selectedMonthDate.value = dayjs().format('YYYY-MM')
+  loadReports()
 }
 
 onMounted(() => {
@@ -311,11 +483,41 @@ onMounted(() => {
       border-bottom: none;
     }
 
-    .period-tag {
+    .date-controls {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-weight: 600;
+      gap: 12px;
+    }
+
+    .period-navigator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+
+      .nav-arrow-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .report-picker {
+        width: 155px;
+
+        :deep(.el-input__wrapper) {
+          border-radius: 8px;
+        }
+      }
+
+      .period-tag {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 0 12px;
+        height: 32px;
+      }
     }
   }
 
