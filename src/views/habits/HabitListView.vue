@@ -94,10 +94,10 @@
           v-for="th in habitStore.todayHabits"
           :key="th.id"
           class="today-habit-card"
-          :class="{ completed: th.isCompletedToday }"
+          :class="{ completed: isHabitDone(th) }"
         >
           <div class="today-card-info">
-            <span class="habit-name" :class="{ strike: th.isCompletedToday }">
+            <span class="habit-name" :class="{ strike: isHabitDone(th) }">
               {{ th.name }}
             </span>
 
@@ -110,14 +110,14 @@
             </div>
           </div>
 
-          <!-- 1-Click Checkin Button -->
+          <!-- 1-Click Checkin / Toggle Button -->
           <button
             class="checkin-btn"
-            :class="{ done: th.isCompletedToday }"
-            :title="th.isCompletedToday ? 'Đã hoàn thành hôm nay' : 'Nhấn để điểm danh'"
-            @click="handleQuickCheckin(th.id)"
+            :class="{ done: isHabitDone(th) }"
+            :title="isHabitDone(th) ? 'Đã hoàn thành hôm nay (Nhấn để hủy điểm danh)' : 'Nhấn để điểm danh'"
+            @click="handleToggleCheckin(th)"
           >
-            <el-icon v-if="th.isCompletedToday"><Check /></el-icon>
+            <el-icon v-if="isHabitDone(th)"><Check /></el-icon>
             <span v-else>+1</span>
           </button>
         </div>
@@ -435,8 +435,29 @@ function openHistoryModal(habit: Habit) {
   isHistoryOpen.value = true
 }
 
-async function handleQuickCheckin(habitId: string) {
-  await habitStore.checkin(habitId)
+function isHabitDone(habit: any): boolean {
+  if (!habit) return false
+  return Boolean(
+    habit.isCompletedToday ||
+    habit.completedToday ||
+    (habit.todayCount != null && habit.targetCount != null && habit.todayCount >= habit.targetCount)
+  )
+}
+
+function getTodayDateString(): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+async function handleToggleCheckin(th: any) {
+  if (isHabitDone(th)) {
+    await habitStore.removeCheckin(th.id, getTodayDateString())
+  } else {
+    await habitStore.checkin(th.id)
+  }
 }
 
 async function handleRemoveCheckin(habitId: string, date: string) {
@@ -714,6 +735,12 @@ onMounted(() => {
             background: #10B981;
             border: 2px solid #10B981;
             color: #FFFFFF;
+
+            &:hover {
+              background: #059669;
+              border-color: #059669;
+              transform: scale(1.05);
+            }
           }
         }
       }

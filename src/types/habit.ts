@@ -30,7 +30,8 @@ export interface Habit {
   longestStreak: number
   totalCompletedDays: number
   completionRate: number
-  isCompletedToday: boolean
+  isCompletedToday?: boolean
+  completedToday?: boolean
   todayCount: number
   recentCheckins?: CheckinResponse[]
 }
@@ -60,7 +61,8 @@ export interface TodayHabit {
   frequency: HabitFrequency
   targetCount: number
   todayCount: number
-  isCompletedToday: boolean
+  isCompletedToday?: boolean
+  completedToday?: boolean
   currentStreak: number
   goalId?: string | null
   goalTitle?: string | null

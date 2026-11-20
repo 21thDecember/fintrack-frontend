@@ -100,15 +100,16 @@
               :key="habit.id"
               class="focus-item"
             >
-              <span class="item-name" :class="{ completed: habit.isCompletedToday }">
+              <span class="item-name" :class="{ completed: isHabitDone(habit) }">
                 {{ habit.name }}
               </span>
               <button
                 class="mini-checkin-btn"
-                :class="{ done: habit.isCompletedToday }"
-                @click="habitStore.checkin(habit.id)"
+                :class="{ done: isHabitDone(habit) }"
+                :title="isHabitDone(habit) ? 'Đã điểm danh hôm nay (Nhấn để hủy điểm danh)' : 'Nhấn để điểm danh'"
+                @click="toggleHabitCheckin(habit)"
               >
-                {{ habit.isCompletedToday ? '✓ Xong' : '+1 Điểm danh' }}
+                {{ isHabitDone(habit) ? '✓ Xong' : '+1 Điểm danh' }}
               </button>
             </div>
           </div>
@@ -540,6 +541,31 @@ function handlePaymentSuccess() {
   debtStore.fetchPersonSummaries()
 }
 
+function isHabitDone(habit: any): boolean {
+  if (!habit) return false
+  return Boolean(
+    habit.isCompletedToday ||
+    habit.completedToday ||
+    (habit.todayCount != null && habit.targetCount != null && habit.todayCount >= habit.targetCount)
+  )
+}
+
+function getTodayDateString(): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+async function toggleHabitCheckin(habit: any) {
+  if (isHabitDone(habit)) {
+    await habitStore.removeCheckin(habit.id, getTodayDateString())
+  } else {
+    await habitStore.checkin(habit.id)
+  }
+}
+
 onMounted(() => {
   fetchDashboard()
   debtStore.fetchPersonSummaries()
@@ -723,6 +749,11 @@ onMounted(() => {
               &.done {
                 background: rgba(16, 185, 129, 0.15);
                 color: #059669;
+
+                &:hover {
+                  background: rgba(16, 185, 129, 0.25);
+                  color: #047857;
+                }
               }
             }
           }
