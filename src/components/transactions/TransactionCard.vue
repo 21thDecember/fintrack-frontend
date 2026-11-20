@@ -4,11 +4,11 @@
       <div
         class="category-icon-box"
         :style="{
-          backgroundColor: transaction.category?.color ? `${transaction.category.color}20` : '#F1F5F9',
-          color: transaction.category?.color || '#64748B'
+          backgroundColor: (transaction.category?.color || transaction.categoryColor) ? `${transaction.category?.color || transaction.categoryColor}20` : '#F1F5F9',
+          color: transaction.category?.color || transaction.categoryColor || '#64748B'
         }"
       >
-        <span class="icon-text">{{ getCategoryInitials(transaction.category?.name) }}</span>
+        <span class="icon-text">{{ getCategoryInitials(transaction.category?.name || transaction.categoryName) }}</span>
       </div>
 
       <div class="details">
@@ -27,9 +27,9 @@
         <div class="sub-info">
           <span class="date">{{ formatDateTime(transaction.transactionDate) }}</span>
           <span class="bullet">•</span>
-          <span class="account-name">{{ transaction.account?.name || 'Tài khoản' }}</span>
-          <span v-if="transaction.category?.name" class="bullet">•</span>
-          <span v-if="transaction.category?.name" class="cat-name">{{ transaction.category.name }}</span>
+          <span class="account-name">{{ transaction.account?.name || transaction.accountName || 'Tài khoản' }}</span>
+          <span v-if="transaction.category?.name || transaction.categoryName" class="bullet">•</span>
+          <span v-if="transaction.category?.name || transaction.categoryName" class="cat-name">{{ transaction.category?.name || transaction.categoryName }}</span>
           <span v-if="transaction.personName" class="bullet">•</span>
           <span v-if="transaction.personName" class="person-tag">👤 {{ transaction.personName }}</span>
           <span v-if="transaction.allocations && transaction.allocations.length > 0" class="bullet">•</span>

@@ -20,7 +20,11 @@ export type TransactionStatus = 'POSTED' | 'VOIDED'
 export interface Transaction {
   id: string
   accountId: string
+  accountName?: string
   categoryId?: string
+  categoryName?: string
+  categoryColor?: string
+  categoryIcon?: string
   type: TransactionType
   amount: number
   direction: TransactionDirection

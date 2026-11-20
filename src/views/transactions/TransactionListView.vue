@@ -193,15 +193,15 @@
                 />
               </el-select>
               <el-tag
-                v-else-if="row.category?.name"
+                v-else-if="row.category?.name || row.categoryName"
                 size="small"
                 :style="{
-                  backgroundColor: row.category?.color ? `${row.category.color}15` : undefined,
-                  borderColor: row.category?.color || undefined,
-                  color: row.category?.color || undefined
+                  backgroundColor: (row.category?.color || row.categoryColor) ? `${row.category?.color || row.categoryColor}15` : undefined,
+                  borderColor: row.category?.color || row.categoryColor || undefined,
+                  color: row.category?.color || row.categoryColor || undefined
                 }"
               >
-                {{ row.category.name }}
+                {{ row.category?.name || row.categoryName }}
               </el-tag>
               <span v-else class="text-muted text-xs">—</span>
             </template>
@@ -209,7 +209,7 @@
 
           <el-table-column label="Tài khoản" width="150">
             <template #default="{ row }">
-              <span class="text-sm">{{ row.account?.name || 'Tài khoản' }}</span>
+              <span class="text-sm">{{ row.account?.name || row.accountName || 'Tài khoản' }}</span>
             </template>
           </el-table-column>
 
@@ -359,7 +359,14 @@ function handleResetFilters() {
 }
 
 async function handleQuickClassify(id: string, categoryId: string) {
-  await transactionStore.quickClassify(id, categoryId)
+  try {
+    await transactionStore.quickClassify(id, categoryId)
+  } catch (err) {
+    const tx = transactionStore.transactions.find(t => t.id === id)
+    if (tx) {
+      tx.categoryId = undefined
+    }
+  }
 }
 
 async function handleDelete(id: string) {
