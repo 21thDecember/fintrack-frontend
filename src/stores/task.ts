@@ -89,10 +89,17 @@ export const useTaskStore = defineStore('task', () => {
   async function updateStatus(id: string, status: TaskStatus): Promise<Task> {
     try {
       const updated = await taskApi.updateStatus(id, { status })
-      // Update local state optimistically or reload
+      // Update local state optimistically or with server data
       const index = tasks.value.findIndex(t => t.id === id)
       if (index !== -1) {
         tasks.value[index] = { ...tasks.value[index], ...updated }
+        if (status === 'COMPLETED' && tasks.value[index].subtasks) {
+          tasks.value[index].subtasks = tasks.value[index].subtasks.map(s => ({
+            ...s,
+            status: 'COMPLETED'
+          }))
+          tasks.value[index].completedSubtaskCount = tasks.value[index].subtasks.length
+        }
       }
       fetchStatistics()
       return updated

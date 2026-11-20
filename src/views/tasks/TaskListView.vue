@@ -83,10 +83,12 @@
           v-for="tab in viewTabs"
           :key="tab.id"
           class="tab-btn"
-          :class="{ active: taskStore.activeView === tab.id }"
+          :class="[tab.id, { active: taskStore.activeView === tab.id }]"
           @click="changeView(tab.id as any)"
         >
-          <span class="tab-icon">{{ tab.icon }}</span>
+          <el-icon :size="16" class="tab-el-icon" :class="tab.iconClass">
+            <component :is="tab.icon" />
+          </el-icon>
           <span class="tab-text">{{ tab.label }}</span>
         </button>
       </div>
@@ -422,6 +424,7 @@ import {
   List,
   Clock,
   Warning,
+  WarningFilled,
   CircleCheckFilled,
   Calendar,
   Timer,
@@ -430,7 +433,8 @@ import {
   Edit,
   Delete,
   Check,
-  Close
+  Close,
+  Collection
 } from '@element-plus/icons-vue'
 import { useTaskStore } from '@/stores/task'
 import type { Task, TaskRequest, TaskPriority, TaskStatus } from '@/types/task'
@@ -440,11 +444,11 @@ import type { FormInstance, FormRules } from 'element-plus'
 const taskStore = useTaskStore()
 
 const viewTabs = [
-  { id: 'today', label: 'Hôm nay', icon: '📌' },
-  { id: 'upcoming', label: 'Sắp tới', icon: '📅' },
-  { id: 'overdue', label: 'Quá hạn', icon: '⚠️' },
-  { id: 'completed', label: 'Đã xong', icon: '✅' },
-  { id: 'all', label: 'Tất cả', icon: '📋' }
+  { id: 'today', label: 'Hôm nay', icon: Calendar, iconClass: 'icon-today' },
+  { id: 'upcoming', label: 'Sắp tới', icon: Timer, iconClass: 'icon-upcoming' },
+  { id: 'overdue', label: 'Quá hạn', icon: WarningFilled, iconClass: 'icon-overdue' },
+  { id: 'completed', label: 'Đã xong', icon: CircleCheckFilled, iconClass: 'icon-completed' },
+  { id: 'all', label: 'Tất cả', icon: Collection, iconClass: 'icon-all' }
 ]
 
 const expandedSubtasks = ref<string[]>([])
@@ -747,7 +751,7 @@ onMounted(() => {
       border-bottom: 1px solid var(--app-card-border);
 
       .tab-btn {
-        padding: 6px 14px;
+        padding: 7px 14px;
         border-radius: 8px;
         font-size: 0.875rem;
         font-weight: 500;
@@ -757,19 +761,58 @@ onMounted(() => {
         cursor: pointer;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 7px;
         white-space: nowrap;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
+
+        .tab-el-icon {
+          font-size: 1rem;
+          transition: transform 0.2s ease;
+
+          &.icon-today { color: #3B82F6; }
+          &.icon-upcoming { color: #8B5CF6; }
+          &.icon-overdue { color: #EF4444; }
+          &.icon-completed { color: #10B981; }
+          &.icon-all { color: var(--app-text-muted); }
+        }
 
         &:hover {
           background: rgba(0, 0, 0, 0.04);
           color: var(--app-text);
+
+          .tab-el-icon {
+            transform: scale(1.15);
+          }
         }
 
         &.active {
-          background: rgba(16, 185, 129, 0.12);
-          color: #10B981;
           font-weight: 700;
+
+          &.today {
+            background: rgba(59, 130, 246, 0.12);
+            color: #3B82F6;
+            .tab-el-icon { color: #3B82F6; }
+          }
+          &.upcoming {
+            background: rgba(139, 92, 246, 0.12);
+            color: #8B5CF6;
+            .tab-el-icon { color: #8B5CF6; }
+          }
+          &.overdue {
+            background: rgba(239, 68, 68, 0.12);
+            color: #EF4444;
+            .tab-el-icon { color: #EF4444; }
+          }
+          &.completed {
+            background: rgba(16, 185, 129, 0.12);
+            color: #10B981;
+            .tab-el-icon { color: #10B981; }
+          }
+          &.all {
+            background: rgba(99, 102, 241, 0.12);
+            color: #6366F1;
+            .tab-el-icon { color: #6366F1; }
+          }
         }
       }
     }
