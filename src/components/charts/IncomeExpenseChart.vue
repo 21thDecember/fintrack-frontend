@@ -13,7 +13,13 @@
       </div>
     </div>
 
-    <div class="bars-container" ref="containerRef">
+    <!-- Empty state when no transactions -->
+    <div v-if="!hasData" class="empty-chart">
+      <el-empty description="Chưa có dữ liệu thu chi trong kỳ" :image-size="70" />
+    </div>
+
+    <!-- Bars container when data exists -->
+    <div v-else class="bars-container" ref="containerRef">
       <div v-for="(item, idx) in data" :key="idx" class="bar-group" @mouseenter="hoveredIndex = idx" @mouseleave="hoveredIndex = null">
         <!-- Bars -->
         <div class="bars-track">
@@ -62,6 +68,10 @@ const props = defineProps<Props>()
 const hoveredIndex = ref<number | null>(null)
 const containerRef = ref<HTMLElement | null>(null)
 
+const hasData = computed(() => {
+  return props.data && props.data.length > 0 && props.data.some(d => (d.income || 0) > 0 || (d.expense || 0) > 0)
+})
+
 const maxVal = computed(() => {
   let m = 0
   props.data.forEach(d => {
@@ -84,6 +94,14 @@ function calcHeight(val: number) {
   width: 100%;
   height: 260px;
   position: relative;
+
+  .empty-chart {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+  }
 
   .chart-header {
     display: flex;
@@ -127,10 +145,14 @@ function calcHeight(val: number) {
     padding-bottom: 24px;
     position: relative;
     border-bottom: 1px dashed var(--app-card-border);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
   }
 
   .bar-group {
     flex: 1;
+    min-width: 28px;
     display: flex;
     flex-direction: column;
     align-items: center;
