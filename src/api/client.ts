@@ -253,6 +253,12 @@ apiClient.interceptors.response.use(
       return handleMockFallback(error.config)
     }
 
+    // Ignore errors for optional endpoints or silent requests
+    const url = error.config?.url || ''
+    if (url.includes('/settings/classification-rules') || error.config?.headers?.['X-Silent-Error']) {
+      return Promise.reject(error)
+    }
+
     const message = error.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại sau.'
     ElMessage.error(message)
     return Promise.reject(error)
