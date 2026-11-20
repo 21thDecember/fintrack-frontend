@@ -380,6 +380,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ArrowLeft, Top, Bottom, Switch, Plus, Promotion, Download, CircleCheck, CreditCard } from '@element-plus/icons-vue'
+import { transactionApi } from '@/api/transactionApi'
 import { useTransactionStore } from '@/stores/transaction'
 import { useAccountStore } from '@/stores/account'
 import { useCategoryStore } from '@/stores/category'
@@ -583,11 +584,7 @@ async function loadTransaction() {
 
   const id = route.params.id as string
   try {
-    let tx = transactionStore.transactions.find(t => t.id === id)
-    if (!tx) {
-      await transactionStore.fetchTransactions(1)
-      tx = transactionStore.transactions.find(t => t.id === id)
-    }
+    const tx = await transactionApi.getTransactionById(id)
     if (tx) {
       form.type = tx.type
       form.amount = tx.amount
@@ -602,7 +599,14 @@ async function loadTransaction() {
       form.originalDescription = tx.originalDescription
       form.note = tx.note || ''
       form.transactionDate = tx.transactionDate
-      form.allocations = (tx as any).debtAllocations || (tx as any).allocations || []
+      form.allocations = tx.debtAllocations?.map((a: any) => ({
+        id: a.id,
+        debtId: a.debtId,
+        personId: a.personId,
+        personName: a.personName,
+        allocatedAmount: a.allocatedAmount,
+        note: a.note || ''
+      })) || []
       isBankTransaction.value = tx.source === 'BANK'
       bankDirection.value = tx.direction || (tx.type === 'INCOME' ? 'IN' : 'OUT')
     }
@@ -617,19 +621,20 @@ async function handleSubmit() {
     if (valid) {
       // Validate allocations total <= amount
       if (form.type === 'EXPENSE' && form.allocations && form.allocations.length > 0) {
-        const totalAlloc = form.allocations.reduce((sum, a) => sum + (a.allocatedAmount || 0), 0)
+        const validAllocations = form.allocations.filter(a => a.personId && (a.allocatedAmount || 0) > 0)
+        const totalAlloc = validAllocations.reduce((sum, a) => sum + (a.allocatedAmount || 0), 0)
         if (totalAlloc > form.amount) {
           ElMessage.error('Tổng số tiền phân chia người khác nợ không được vượt quá số tiền chi tiêu!')
           return
         }
-        form.debtAllocations = form.allocations.map(a => ({
+        form.debtAllocations = validAllocations.map(a => ({
           personId: a.personId,
           allocatedAmount: a.allocatedAmount,
           note: a.note || undefined,
           dueDate: a.dueDate || undefined
         }))
       } else {
-        form.debtAllocations = undefined
+        form.debtAllocations = []
       }
 
       if (form.type !== 'LOAN_GIVEN' && form.type !== 'BORROW_RECEIVED') {
@@ -648,7 +653,7 @@ async function handleSubmit() {
         if (form.type !== 'INCOME' && form.type !== 'EXPENSE') {
           form.categoryId = undefined
         }
-        if (form.transactionDate) {
+        if (form.transactionDate && !isBankTransaction.value) {
           const d = new Date(form.transactionDate)
           if (!isNaN(d.getTime())) {
             form.transactionDate = d.toISOString()
