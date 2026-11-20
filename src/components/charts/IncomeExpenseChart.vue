@@ -20,37 +20,46 @@
 
     <!-- Bars container when data exists -->
     <div v-else class="bars-container" ref="containerRef">
-      <div v-for="(item, idx) in data" :key="idx" class="bar-group" @mouseenter="hoveredIndex = idx" @mouseleave="hoveredIndex = null">
-        <!-- Bars -->
-        <div class="bars-track">
-          <!-- Income Bar -->
-          <div
-            class="bar income-bar"
-            :style="{ height: `${calcHeight(item.income)}%` }"
-          ></div>
-          <!-- Expense Bar -->
-          <div
-            class="bar expense-bar"
-            :style="{ height: `${calcHeight(item.expense)}%` }"
-          ></div>
-        </div>
-
-        <!-- Label -->
-        <div class="bar-label">{{ item.label }}</div>
-
-        <!-- Tooltip -->
-        <div v-if="hoveredIndex === idx" class="chart-tooltip">
-          <div class="tooltip-title">{{ item.label }}</div>
-          <div class="tooltip-row text-income">
-            <span>Thu:</span>
-            <strong>{{ formatCurrency(item.income) }}</strong>
+      <el-tooltip
+        v-for="(item, idx) in data"
+        :key="idx"
+        placement="top"
+        effect="dark"
+        :show-after="50"
+      >
+        <template #content>
+          <div class="chart-tooltip-content">
+            <div class="tooltip-title">{{ item.label }}</div>
+            <div class="tooltip-row text-income">
+              <span>Thu:</span>
+              <strong>{{ formatCurrency(item.income) }}</strong>
+            </div>
+            <div class="tooltip-row text-expense">
+              <span>Chi:</span>
+              <strong>{{ formatCurrency(item.expense) }}</strong>
+            </div>
           </div>
-          <div class="tooltip-row text-expense">
-            <span>Chi:</span>
-            <strong>{{ formatCurrency(item.expense) }}</strong>
+        </template>
+
+        <div class="bar-group">
+          <!-- Bars -->
+          <div class="bars-track">
+            <!-- Income Bar -->
+            <div
+              class="bar income-bar"
+              :style="{ height: `${calcHeight(item.income)}%` }"
+            ></div>
+            <!-- Expense Bar -->
+            <div
+              class="bar expense-bar"
+              :style="{ height: `${calcHeight(item.expense)}%` }"
+            ></div>
           </div>
+
+          <!-- Label -->
+          <div class="bar-label">{{ item.label }}</div>
         </div>
-      </div>
+      </el-tooltip>
     </div>
   </div>
 </template>
@@ -65,7 +74,6 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const hoveredIndex = ref<number | null>(null)
 const containerRef = ref<HTMLElement | null>(null)
 
 const hasData = computed(() => {
@@ -199,30 +207,35 @@ function calcHeight(val: number) {
     font-weight: 500;
   }
 
-  .chart-tooltip {
-    position: absolute;
-    top: -65px;
-    background: rgba(15, 23, 42, 0.95);
-    color: #FFFFFF;
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-    white-space: nowrap;
-    z-index: 10;
-    pointer-events: none;
+}
+</style>
 
-    .tooltip-title {
-      font-weight: 700;
-      margin-bottom: 2px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      padding-bottom: 2px;
+<style lang="scss">
+.chart-tooltip-content {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  padding: 4px 6px;
+
+  .tooltip-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    padding-bottom: 2px;
+    color: #FFFFFF;
+  }
+
+  .tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 2px;
+
+    &.text-income {
+      color: #34D399;
     }
 
-    .tooltip-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
+    &.text-expense {
+      color: #F87171;
     }
   }
 }
