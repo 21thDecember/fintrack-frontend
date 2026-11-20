@@ -36,19 +36,38 @@
               class="type-radio-group"
               @change="handleTypeChange"
             >
-              <el-radio-button label="EXPENSE" :disabled="isTypeDisabled('EXPENSE')">
-                <el-icon class="mr-1"><Top /></el-icon> Chi tiêu
-              </el-radio-button>
-              <el-radio-button label="INCOME" :disabled="isTypeDisabled('INCOME')">
-                <el-icon class="mr-1"><Bottom /></el-icon> Thu nhập
-              </el-radio-button>
-              <el-radio-button label="TRANSFER" :disabled="isTypeDisabled('TRANSFER')">
-                <el-icon class="mr-1"><Switch /></el-icon> Chuyển khoản
-              </el-radio-button>
-              <el-radio-button label="LOAN_GIVEN" :disabled="isTypeDisabled('LOAN_GIVEN')">Cho vay</el-radio-button>
-              <el-radio-button label="BORROW_RECEIVED" :disabled="isTypeDisabled('BORROW_RECEIVED')">Đi vay</el-radio-button>
-              <el-radio-button label="DEBT_COLLECTION" :disabled="isTypeDisabled('DEBT_COLLECTION')">Thu hồi nợ</el-radio-button>
-              <el-radio-button label="DEBT_REPAYMENT" :disabled="isTypeDisabled('DEBT_REPAYMENT')">Trả nợ</el-radio-button>
+              <div class="type-section-group">
+                <span class="type-group-label">Thu chi thường ngày:</span>
+                <div class="type-btn-row">
+                  <el-radio-button label="EXPENSE" :disabled="isTypeDisabled('EXPENSE')">
+                    <el-icon class="mr-1"><Top /></el-icon> Chi tiêu
+                  </el-radio-button>
+                  <el-radio-button label="INCOME" :disabled="isTypeDisabled('INCOME')">
+                    <el-icon class="mr-1"><Bottom /></el-icon> Thu nhập
+                  </el-radio-button>
+                  <el-radio-button label="TRANSFER" :disabled="isTypeDisabled('TRANSFER')">
+                    <el-icon class="mr-1"><Switch /></el-icon> Chuyển khoản
+                  </el-radio-button>
+                </div>
+              </div>
+
+              <div class="type-section-group mt-3">
+                <span class="type-group-label">Nghiệp vụ công nợ:</span>
+                <div class="type-btn-row">
+                  <el-radio-button label="LOAN_GIVEN" :disabled="isTypeDisabled('LOAN_GIVEN')">
+                    <el-icon class="mr-1"><Promotion /></el-icon> Cho vay
+                  </el-radio-button>
+                  <el-radio-button label="BORROW_RECEIVED" :disabled="isTypeDisabled('BORROW_RECEIVED')">
+                    <el-icon class="mr-1"><Download /></el-icon> Đi vay
+                  </el-radio-button>
+                  <el-radio-button label="DEBT_COLLECTION" :disabled="isTypeDisabled('DEBT_COLLECTION')">
+                    <el-icon class="mr-1"><CircleCheck /></el-icon> Thu hồi nợ
+                  </el-radio-button>
+                  <el-radio-button label="DEBT_REPAYMENT" :disabled="isTypeDisabled('DEBT_REPAYMENT')">
+                    <el-icon class="mr-1"><CreditCard /></el-icon> Trả nợ
+                  </el-radio-button>
+                </div>
+              </div>
             </el-radio-group>
           </el-form-item>
 
@@ -66,8 +85,11 @@
                   class="prominent-amount-input"
                   style="width: 100%"
                 />
-                <div class="amount-preview">
-                  {{ formatCurrency(form.amount) }}
+                <div
+                  class="amount-preview"
+                  :class="form.type === 'TRANSFER' ? 'text-transfer' : (isExpenseType ? 'text-expense' : 'text-income')"
+                >
+                  {{ form.type === 'TRANSFER' ? '' : (isExpenseType ? '-' : '+') }}{{ formatCurrency(form.amount) }}
                 </div>
               </div>
             </el-form-item>
@@ -357,7 +379,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { FormInstance, FormRules } from 'element-plus'
-import { ArrowLeft, Top, Bottom, Switch, Plus } from '@element-plus/icons-vue'
+import { ArrowLeft, Top, Bottom, Switch, Plus, Promotion, Download, CircleCheck, CreditCard } from '@element-plus/icons-vue'
 import { useTransactionStore } from '@/stores/transaction'
 import { useAccountStore } from '@/stores/account'
 import { useCategoryStore } from '@/stores/category'
@@ -384,6 +406,10 @@ const loading = ref(false)
 const isEdit = computed(() => !!route.params.id && route.params.id !== 'create')
 const isBankTransaction = ref(false)
 const bankDirection = ref<TransactionDirection | null>(null)
+
+const isExpenseType = computed(() => {
+  return ['EXPENSE', 'LOAN_GIVEN', 'DEBT_REPAYMENT'].includes(form.type)
+})
 
 const showQuickCreatePerson = ref(false)
 const creatingPerson = ref(false)
@@ -690,9 +716,29 @@ onMounted(async () => {
 
   .type-radio-group {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: column;
+    gap: 12px;
     width: 100%;
+
+    .type-section-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      .type-group-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--app-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .type-btn-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+    }
   }
 
   .amount-input-section {
@@ -711,7 +757,17 @@ onMounted(async () => {
     .amount-preview {
       font-size: 1.5rem;
       font-weight: 800;
-      color: #10B981;
+      transition: color 0.2s ease;
+
+      &.text-expense {
+        color: #EF4444;
+      }
+      &.text-income {
+        color: #10B981;
+      }
+      &.text-transfer {
+        color: #3B82F6;
+      }
     }
   }
 

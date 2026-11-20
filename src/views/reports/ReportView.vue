@@ -42,7 +42,7 @@
 
           <el-tag size="large" type="primary" effect="plain" class="period-tag">
             <el-icon><Calendar /></el-icon>
-            <span>{{ currentWeekDisplayLabel }}</span>
+            <span>{{ currentWeekRangeLabel }}</span>
           </el-tag>
 
           <el-button
@@ -91,7 +91,7 @@
 
           <el-tag size="large" type="primary" effect="plain" class="period-tag">
             <el-icon><Calendar /></el-icon>
-            <span>Tháng {{ currentMonthDisplayLabel }}</span>
+            <span>{{ currentMonthRangeLabel }}</span>
           </el-tag>
 
           <el-button
@@ -206,7 +206,7 @@
                   <span class="dot in"></span>
                   <span>Đã thu hồi nợ (Người trả mình):</span>
                 </div>
-                <strong class="text-income">+{{ formatCurrency(weeklyData.debtActivity.receivablesCollected) }}</strong>
+                <strong class="text-income">{{ (weeklyData.debtActivity.receivablesCollected || 0) > 0 ? '+' : '' }}{{ formatCurrency(weeklyData.debtActivity.receivablesCollected) }}</strong>
               </div>
 
               <div class="activity-row">
@@ -214,7 +214,7 @@
                   <span class="dot out"></span>
                   <span>Đã thanh toán nợ (Mình trả người):</span>
                 </div>
-                <strong class="text-expense">-{{ formatCurrency(weeklyData.debtActivity.payablesPaid) }}</strong>
+                <strong class="text-expense">{{ (weeklyData.debtActivity.payablesPaid || 0) > 0 ? '-' : '' }}{{ formatCurrency(weeklyData.debtActivity.payablesPaid) }}</strong>
               </div>
 
               <div class="activity-row">
@@ -389,19 +389,19 @@ const isCurrentMonth = computed(() => {
   return dayjs(selectedMonthDate.value).isSame(dayjs(), 'month')
 })
 
-const currentWeekDisplayLabel = computed(() => {
+const currentWeekRangeLabel = computed(() => {
   if (weeklyData.value?.startDate && weeklyData.value?.endDate) {
     const s = dayjs(weeklyData.value.startDate)
     const e = dayjs(weeklyData.value.endDate)
-    return `Tuần ${s.isoWeek()}/${s.isoWeekYear()} (${s.format('DD/MM')} - ${e.format('DD/MM')})`
+    return `${s.format('DD/MM/YYYY')} - ${e.format('DD/MM/YYYY')}`
   }
   const d = dayjs(selectedWeekDate.value)
-  return `Tuần ${d.isoWeek()}/${d.isoWeekYear()} (${d.startOf('isoWeek').format('DD/MM')} - ${d.endOf('isoWeek').format('DD/MM')})`
+  return `${d.startOf('isoWeek').format('DD/MM/YYYY')} - ${d.endOf('isoWeek').format('DD/MM/YYYY')}`
 })
 
-const currentMonthDisplayLabel = computed(() => {
+const currentMonthRangeLabel = computed(() => {
   const d = dayjs(selectedMonthDate.value)
-  return `${d.format('MM/YYYY')}`
+  return `${d.startOf('month').format('DD/MM/YYYY')} - ${d.endOf('month').format('DD/MM/YYYY')}`
 })
 
 const previousMonthName = computed(() => {

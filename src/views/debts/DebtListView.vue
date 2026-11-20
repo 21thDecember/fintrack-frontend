@@ -66,15 +66,19 @@
           <div class="badge-body">
             <div class="row receivable">
               <span>Họ nợ:</span>
-              <span class="font-bold">+{{ formatCurrency(ps.totalReceivable ?? ps.receivableAmount ?? 0) }}</span>
+              <span class="font-bold" :class="(ps.totalReceivable ?? ps.receivableAmount ?? 0) > 0 ? 'text-income' : ''">
+                {{ (ps.totalReceivable ?? ps.receivableAmount ?? 0) > 0 ? '+' : '' }}{{ formatCurrency(ps.totalReceivable ?? ps.receivableAmount ?? 0) }}
+              </span>
             </div>
             <div class="row payable">
               <span>Mình nợ:</span>
-              <span class="font-bold">-{{ formatCurrency(ps.totalPayable ?? ps.payableAmount ?? 0) }}</span>
+              <span class="font-bold" :class="(ps.totalPayable ?? ps.payableAmount ?? 0) > 0 ? 'text-expense' : ''">
+                {{ (ps.totalPayable ?? ps.payableAmount ?? 0) > 0 ? '-' : '' }}{{ formatCurrency(ps.totalPayable ?? ps.payableAmount ?? 0) }}
+              </span>
             </div>
-            <div class="row net" :class="(ps.netAmount ?? 0) >= 0 ? 'text-income' : 'text-expense'">
+            <div class="row net" :class="(ps.netAmount ?? 0) > 0 ? 'text-income' : (ps.netAmount ?? 0) < 0 ? 'text-expense' : ''">
               <span>Chênh lệch:</span>
-              <span>{{ (ps.netAmount ?? 0) >= 0 ? '+' : '' }}{{ formatCurrency(ps.netAmount ?? 0) }}</span>
+              <span>{{ (ps.netAmount ?? 0) > 0 ? '+' : '' }}{{ formatCurrency(ps.netAmount ?? 0) }}</span>
             </div>
           </div>
         </div>
@@ -107,7 +111,7 @@
           v-model="statusFilter"
           placeholder="Lọc theo trạng thái"
           clearable
-          style="width: 180px"
+          class="filter-select-status"
         >
           <el-option label="Chưa trả (OPEN)" value="OPEN" />
           <el-option label="Trả một phần (PARTIAL)" value="PARTIAL" />
@@ -120,7 +124,7 @@
           placeholder="Lọc theo người liên hệ"
           clearable
           filterable
-          style="width: 220px"
+          class="filter-select-person"
         >
           <el-option
             v-for="p in personStore.persons"
@@ -135,7 +139,7 @@
           placeholder="Tìm theo nội dung..."
           :prefix-icon="Search"
           clearable
-          style="width: 240px"
+          class="filter-search-input"
         />
       </div>
 
@@ -812,6 +816,17 @@ onMounted(() => {
       gap: 12px;
       flex-wrap: wrap;
       margin-bottom: 16px;
+
+      .filter-select-status {
+        width: 190px;
+      }
+      .filter-select-person {
+        width: 220px;
+      }
+      .filter-search-input {
+        flex: 1;
+        min-width: 200px;
+      }
     }
 
     .person-cell {

@@ -2,8 +2,7 @@
   <div class="categories-view">
     <div class="categories-header">
       <div class="title-info">
-        <h1 class="page-heading">Danh mục Thu & Chi</h1>
-        <p class="sub-heading">Phân loại các khoản chi tiêu và nguồn thu để báo cáo chính xác hơn</p>
+        <p class="sub-heading">Phân loại các khoản chi tiêu và nguồn thu để theo dõi báo cáo và quản lý tài chính chuẩn xác</p>
       </div>
 
       <el-button type="primary" :icon="Plus" @click="openCreateDialog">

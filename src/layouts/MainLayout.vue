@@ -101,7 +101,7 @@
           </router-link>
 
           <!-- Quick Action Button -->
-          <router-link to="/transactions/create">
+          <router-link v-if="route.path !== '/transactions/create'" to="/transactions/create">
             <el-button type="primary" :icon="Plus" round>
               <span v-if="!isMobile">Thêm giao dịch</span>
             </el-button>

@@ -1,8 +1,7 @@
 <template>
   <div class="settings-view">
     <div class="settings-header">
-      <h1 class="page-title">Cài đặt hệ thống</h1>
-      <p class="page-desc">Tùy chỉnh kết nối SePay, quy tắc tự động phân loại giao dịch ngân hàng và giao diện</p>
+      <p class="page-desc">Tùy chỉnh kết nối SePay, quy tắc tự động phân loại giao dịch ngân hàng và giao diện hệ thống</p>
     </div>
 
     <!-- 0. SePay Bank Integration Card -->

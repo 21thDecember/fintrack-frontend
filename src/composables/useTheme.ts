@@ -1,10 +1,19 @@
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 
-export function useTheme() {
-  const isDark = ref(false)
+const getInitialTheme = (): boolean => {
+  if (typeof window === 'undefined') return false
+  const saved = localStorage.getItem('theme')
+  if (saved !== null) {
+    return saved === 'dark'
+  }
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+}
 
-  const applyTheme = (dark: boolean) => {
-    isDark.value = dark
+const isDark = ref(getInitialTheme())
+
+const applyTheme = (dark: boolean) => {
+  isDark.value = dark
+  if (typeof document !== 'undefined') {
     const html = document.documentElement
     if (dark) {
       html.classList.add('dark')
@@ -13,19 +22,17 @@ export function useTheme() {
     }
     localStorage.setItem('theme', dark ? 'dark' : 'light')
   }
+}
 
+// Apply initial theme immediately
+if (typeof window !== 'undefined') {
+  applyTheme(isDark.value)
+}
+
+export function useTheme() {
   const toggleDark = () => {
     applyTheme(!isDark.value)
   }
-
-  onMounted(() => {
-    const saved = localStorage.getItem('theme')
-    if (saved) {
-      applyTheme(saved === 'dark')
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      applyTheme(true)
-    }
-  })
 
   return {
     isDark,

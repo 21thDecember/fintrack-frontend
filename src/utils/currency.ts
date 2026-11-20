@@ -3,7 +3,7 @@
  * Ví dụ: 1000000 -> "1.000.000 ₫"
  */
 export function formatCurrency(amount: number | null | undefined): string {
-  if (amount === null || amount === undefined || isNaN(amount)) {
+  if (amount === null || amount === undefined || isNaN(amount) || amount === 0 || Object.is(amount, -0)) {
     return '0 ₫'
   }
   return new Intl.NumberFormat('vi-VN', {
@@ -11,6 +11,18 @@ export function formatCurrency(amount: number | null | undefined): string {
     currency: 'VND',
     maximumFractionDigits: 0
   }).format(amount)
+}
+
+/**
+ * Định dạng tiền tệ có kèm dấu + hoặc -
+ * Khi giá trị bằng 0 sẽ trả về "0 ₫" thay vì "-0 ₫" hoặc "+0 ₫"
+ */
+export function formatSignedCurrency(amount: number | null | undefined, isPositive = true): string {
+  if (!amount || isNaN(amount) || amount === 0) {
+    return '0 ₫'
+  }
+  const formatted = formatCurrency(Math.abs(amount))
+  return isPositive ? `+${formatted}` : `-${formatted}`
 }
 
 /**

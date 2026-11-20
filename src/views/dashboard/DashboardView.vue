@@ -85,7 +85,7 @@
           <div class="flow-info">
             <span class="flow-label">Tổng thu nhập</span>
             <strong class="flow-value text-income">
-              +{{ formatCurrency(dashboardData?.summary?.totalIncome || 0) }}
+              {{ (dashboardData?.summary?.totalIncome || 0) > 0 ? '+' : '' }}{{ formatCurrency(dashboardData?.summary?.totalIncome || 0) }}
             </strong>
           </div>
         </div>
@@ -99,7 +99,7 @@
           <div class="flow-info">
             <span class="flow-label">Tổng chi tiêu</span>
             <strong class="flow-value text-expense">
-              -{{ formatCurrency(dashboardData?.summary?.totalExpense || 0) }}
+              {{ (dashboardData?.summary?.totalExpense || 0) > 0 ? '-' : '' }}{{ formatCurrency(dashboardData?.summary?.totalExpense || 0) }}
             </strong>
           </div>
         </div>
@@ -114,9 +114,9 @@
             <span class="flow-label">Thặng dư / Chênh lệch</span>
             <strong
               class="flow-value"
-              :class="(dashboardData?.summary?.balanceDiff || 0) >= 0 ? 'text-income' : 'text-expense'"
+              :class="(dashboardData?.summary?.balanceDiff || 0) > 0 ? 'text-income' : (dashboardData?.summary?.balanceDiff || 0) < 0 ? 'text-expense' : ''"
             >
-              {{ formatCurrency(dashboardData?.summary?.balanceDiff || 0) }}
+              {{ (dashboardData?.summary?.balanceDiff || 0) > 0 ? '+' : '' }}{{ formatCurrency(dashboardData?.summary?.balanceDiff || 0) }}
             </strong>
           </div>
         </div>
@@ -304,15 +304,19 @@
                   <el-tag size="small" type="info">{{ ps.openDebtsCount ?? ps.activeDebtsCount ?? 0 }} khoản</el-tag>
                 </div>
                 <div style="font-size: 12px; display: flex; gap: 12px; margin-top: 4px;">
-                  <span style="color: #10B981;">Họ nợ: +{{ formatCurrency(ps.totalReceivable ?? ps.receivableAmount ?? 0) }}</span>
-                  <span style="color: #EF4444;">Mình nợ: -{{ formatCurrency(ps.totalPayable ?? ps.payableAmount ?? 0) }}</span>
+                  <span :style="{ color: (ps.totalReceivable ?? ps.receivableAmount ?? 0) > 0 ? '#10B981' : 'var(--app-text-muted)' }">
+                    Họ nợ: {{ (ps.totalReceivable ?? ps.receivableAmount ?? 0) > 0 ? '+' : '' }}{{ formatCurrency(ps.totalReceivable ?? ps.receivableAmount ?? 0) }}
+                  </span>
+                  <span :style="{ color: (ps.totalPayable ?? ps.payableAmount ?? 0) > 0 ? '#EF4444' : 'var(--app-text-muted)' }">
+                    Mình nợ: {{ (ps.totalPayable ?? ps.payableAmount ?? 0) > 0 ? '-' : '' }}{{ formatCurrency(ps.totalPayable ?? ps.payableAmount ?? 0) }}
+                  </span>
                 </div>
               </div>
 
               <div class="debt-right" style="text-align: right;">
                 <div style="font-size: 11px; color: var(--app-text-muted);">Chênh lệch:</div>
-                <strong :class="(ps.netAmount ?? 0) >= 0 ? 'text-income' : 'text-expense'">
-                  {{ (ps.netAmount ?? 0) >= 0 ? '+' : '' }}{{ formatCurrency(ps.netAmount ?? 0) }}
+                <strong :class="(ps.netAmount ?? 0) > 0 ? 'text-income' : (ps.netAmount ?? 0) < 0 ? 'text-expense' : ''">
+                  {{ (ps.netAmount ?? 0) > 0 ? '+' : '' }}{{ formatCurrency(ps.netAmount ?? 0) }}
                 </strong>
               </div>
             </div>

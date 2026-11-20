@@ -41,23 +41,28 @@
           </div>
         </template>
 
-        <div class="bar-group">
+        <div class="bar-group" :class="{ 'compact-mode': data.length > 14 }">
           <!-- Bars -->
           <div class="bars-track">
             <!-- Income Bar -->
             <div
               class="bar income-bar"
               :style="{ height: `${calcHeight(item.income)}%` }"
+              :class="{ 'is-zero': !item.income || item.income <= 0 }"
             ></div>
             <!-- Expense Bar -->
             <div
               class="bar expense-bar"
               :style="{ height: `${calcHeight(item.expense)}%` }"
+              :class="{ 'is-zero': !item.expense || item.expense <= 0 }"
             ></div>
           </div>
 
           <!-- Label -->
-          <div class="bar-label">{{ item.label }}</div>
+          <div class="bar-label">
+            <span v-if="shouldShowLabel(idx, data.length)">{{ item.label }}</span>
+            <span v-else class="tick-dot">·</span>
+          </div>
         </div>
       </el-tooltip>
     </div>
@@ -90,8 +95,14 @@ const maxVal = computed(() => {
 })
 
 function calcHeight(val: number) {
-  if (!val || val <= 0) return 3
+  if (!val || val <= 0) return 0
   return Math.max(4, Math.min(100, (val / maxVal.value) * 100))
+}
+
+function shouldShowLabel(idx: number, total: number) {
+  if (total <= 12) return true
+  if (total <= 20) return idx % 2 === 0 || idx === total - 1
+  return idx % 5 === 0 || idx === total - 1 || idx === 0
 }
 </script>
 
@@ -160,7 +171,7 @@ function calcHeight(val: number) {
 
   .bar-group {
     flex: 1;
-    min-width: 28px;
+    min-width: 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -168,9 +179,16 @@ function calcHeight(val: number) {
     position: relative;
     cursor: pointer;
 
+    &.compact-mode {
+      min-width: 0;
+    }
+
     &:hover {
-      .bar {
-        filter: brightness(1.1);
+      .bar:not(.is-zero) {
+        filter: brightness(1.15);
+      }
+      .tick-dot {
+        color: var(--app-text);
       }
     }
   }
@@ -179,16 +197,21 @@ function calcHeight(val: number) {
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    gap: 4px;
+    gap: 3px;
     width: 100%;
     height: calc(100% - 20px);
   }
 
   .bar {
-    width: 38%;
-    max-width: 16px;
+    width: 42%;
+    max-width: 14px;
     border-radius: 4px 4px 0 0;
     transition: height 0.4s ease, filter 0.2s;
+
+    &.is-zero {
+      opacity: 0;
+      pointer-events: none;
+    }
 
     &.income-bar {
       background: linear-gradient(180deg, #34D399 0%, #10B981 100%);
@@ -202,9 +225,17 @@ function calcHeight(val: number) {
   .bar-label {
     position: absolute;
     bottom: -22px;
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     color: var(--app-text-muted);
     font-weight: 500;
+    white-space: nowrap;
+
+    .tick-dot {
+      font-size: 1rem;
+      line-height: 1;
+      display: inline-block;
+      opacity: 0.5;
+    }
   }
 
 }
