@@ -34,9 +34,6 @@
               <div class="cat-right">
                 <el-switch
                   v-model="cat.isActive"
-                  inline-prompt
-                  active-text="Bật"
-                  inactive-text="Ẩn"
                   @change="(val: boolean | string | number) => handleToggleStatus(cat.id, Boolean(val))"
                 />
                 <el-button link type="primary" size="small" @click="openEditDialog(cat)">
@@ -67,9 +64,6 @@
               <div class="cat-right">
                 <el-switch
                   v-model="cat.isActive"
-                  inline-prompt
-                  active-text="Bật"
-                  inactive-text="Ẩn"
                   @change="(val: boolean | string | number) => handleToggleStatus(cat.id, Boolean(val))"
                 />
                 <el-button link type="primary" size="small" @click="openEditDialog(cat)">
@@ -182,7 +176,12 @@ function openEditDialog(cat: Category) {
 }
 
 async function handleToggleStatus(id: string, active: boolean) {
-  await categoryStore.toggleActive(id, active)
+  try {
+    await categoryStore.toggleActive(id, active)
+  } catch (err) {
+    const cat = categoryStore.categories.find(c => c.id === id)
+    if (cat) cat.isActive = !active
+  }
 }
 
 async function handleSubmit() {
@@ -255,7 +254,8 @@ onMounted(() => {
     transition: all 0.2s ease;
 
     &.is-inactive {
-      opacity: 0.5;
+      opacity: 0.55;
+      filter: grayscale(0.6);
     }
 
     .cat-left {

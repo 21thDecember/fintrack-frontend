@@ -9,8 +9,10 @@ export const useCategoryStore = defineStore('category', () => {
   const loading = ref(false)
 
   const activeCategories = computed(() => categories.value.filter(c => c.isActive))
-  const incomeCategories = computed(() => activeCategories.value.filter(c => c.type === 'INCOME'))
-  const expenseCategories = computed(() => activeCategories.value.filter(c => c.type === 'EXPENSE'))
+  const activeIncomeCategories = computed(() => activeCategories.value.filter(c => c.type === 'INCOME'))
+  const activeExpenseCategories = computed(() => activeCategories.value.filter(c => c.type === 'EXPENSE'))
+  const incomeCategories = computed(() => categories.value.filter(c => c.type === 'INCOME'))
+  const expenseCategories = computed(() => categories.value.filter(c => c.type === 'EXPENSE'))
 
   async function fetchCategories(type?: CategoryType) {
     loading.value = true
@@ -70,6 +72,8 @@ export const useCategoryStore = defineStore('category', () => {
   return {
     categories,
     activeCategories,
+    activeIncomeCategories,
+    activeExpenseCategories,
     incomeCategories,
     expenseCategories,
     loading,

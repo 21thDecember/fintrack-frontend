@@ -42,9 +42,6 @@
           <div class="acc-switch">
             <el-switch
               v-model="account.isActive"
-              inline-prompt
-              active-text="Bật"
-              inactive-text="Tắt"
               @change="(val: boolean | string | number) => handleToggleStatus(account.id, Boolean(val))"
             />
           </div>
@@ -174,7 +171,12 @@ function openEditDialog(acc: Account) {
 }
 
 async function handleToggleStatus(id: string, active: boolean) {
-  await accountStore.toggleActive(id, active)
+  try {
+    await accountStore.toggleActive(id, active)
+  } catch (err) {
+    const acc = accountStore.accounts.find(a => a.id === id)
+    if (acc) acc.isActive = !active
+  }
 }
 
 async function handleSubmit() {

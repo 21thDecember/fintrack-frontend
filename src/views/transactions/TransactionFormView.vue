@@ -495,8 +495,8 @@ const rules: FormRules = {
 }
 
 const availableCategories = computed(() => {
-  if (form.type === 'INCOME') return categoryStore.incomeCategories
-  if (form.type === 'EXPENSE') return categoryStore.expenseCategories
+  if (form.type === 'INCOME') return categoryStore.activeIncomeCategories
+  if (form.type === 'EXPENSE') return categoryStore.activeExpenseCategories
   return []
 })
 
