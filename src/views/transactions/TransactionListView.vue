@@ -2,98 +2,105 @@
   <div class="transaction-list-view">
     <!-- Top Filter Bar -->
     <el-card class="filter-card" shadow="never">
-      <div class="filter-grid">
-        <!-- Search Keyword -->
-        <div class="filter-item search-item">
-          <el-input
-            v-model="searchQuery"
-            placeholder="Tìm theo nội dung, mô tả..."
-            :prefix-icon="Search"
-            clearable
-            @input="handleSearch"
-          />
-        </div>
-
-        <!-- Date Range -->
-        <div class="filter-item date-item">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="-"
-            start-placeholder="Từ ngày"
-            end-placeholder="Đến ngày"
-            value-format="YYYY-MM-DD"
-            @change="handleDateRangeChange"
-          />
-        </div>
-
-        <!-- Account Filter -->
-        <div class="filter-item">
-          <el-select
-            v-model="selectedAccount"
-            placeholder="Tất cả tài khoản"
-            clearable
-            @change="handleFilterChange"
-          >
-            <el-option
-              v-for="acc in accountStore.accounts"
-              :key="acc.id"
-              :label="acc.name"
-              :value="acc.id"
+      <div class="filter-container">
+        <!-- Row 1: Primary Search & Date Range & Reset -->
+        <div class="filter-row primary-row">
+          <div class="filter-item search-item">
+            <el-input
+              v-model="searchQuery"
+              placeholder="Tìm theo nội dung, mô tả..."
+              :prefix-icon="Search"
+              clearable
+              @input="handleSearch"
             />
-          </el-select>
-        </div>
+          </div>
 
-        <!-- Category Filter -->
-        <div class="filter-item">
-          <el-select
-            v-model="selectedCategory"
-            placeholder="Tất cả danh mục"
-            clearable
-            @change="handleFilterChange"
-          >
-            <el-option
-              v-for="cat in categoryStore.categories"
-              :key="cat.id"
-              :label="cat.name"
-              :value="cat.id"
+          <div class="filter-item date-item">
+            <el-date-picker
+              v-model="dateRange"
+              type="daterange"
+              range-separator="-"
+              start-placeholder="Từ ngày"
+              end-placeholder="Đến ngày"
+              format="DD/MM/YYYY"
+              value-format="YYYY-MM-DD"
+              :shortcuts="dateShortcuts"
+              @change="handleDateRangeChange"
             />
-          </el-select>
+          </div>
+
+          <div class="filter-actions">
+            <el-button
+              :type="hasActiveFilters ? 'primary' : 'default'"
+              :plain="hasActiveFilters"
+              class="reset-btn"
+              @click="handleResetFilters"
+            >
+              <el-icon><RefreshRight /></el-icon>
+              <span>Đặt lại</span>
+              <span v-if="activeFilterCount > 0" class="filter-count">({{ activeFilterCount }})</span>
+            </el-button>
+          </div>
         </div>
 
-        <!-- Source Filter -->
-        <div class="filter-item">
-          <el-select
-            v-model="selectedSource"
-            placeholder="Nguồn giao dịch"
-            clearable
-            @change="handleFilterChange"
-          >
-            <el-option label="Ngân hàng (Bank)" value="BANK" />
-            <el-option label="Thủ công (Manual)" value="MANUAL" />
-            <el-option label="Hệ thống (System)" value="SYSTEM" />
-          </el-select>
-        </div>
+        <!-- Row 2: Secondary Selects -->
+        <div class="filter-row facet-row">
+          <div class="filter-item select-item">
+            <el-select
+              v-model="selectedAccount"
+              placeholder="Tất cả tài khoản"
+              clearable
+              @change="handleFilterChange"
+            >
+              <el-option
+                v-for="acc in accountStore.accounts"
+                :key="acc.id"
+                :label="acc.name"
+                :value="acc.id"
+              />
+            </el-select>
+          </div>
 
-        <!-- Classification Status Filter -->
-        <div class="filter-item">
-          <el-select
-            v-model="selectedStatus"
-            placeholder="Trạng thái phân loại"
-            clearable
-            @change="handleFilterChange"
-          >
-            <el-option label="Chưa phân loại" value="UNCLASSIFIED" />
-            <el-option label="Đã phân loại" value="CLASSIFIED" />
-          </el-select>
-        </div>
+          <div class="filter-item select-item">
+            <el-select
+              v-model="selectedCategory"
+              placeholder="Tất cả danh mục"
+              clearable
+              @change="handleFilterChange"
+            >
+              <el-option
+                v-for="cat in categoryStore.categories"
+                :key="cat.id"
+                :label="cat.name"
+                :value="cat.id"
+              />
+            </el-select>
+          </div>
 
-        <!-- Reset Button -->
-        <div class="filter-actions">
-          <el-button text @click="handleResetFilters">
-            <el-icon><RefreshRight /></el-icon>
-            Đặt lại
-          </el-button>
+          <div class="filter-item select-item">
+            <el-select
+              v-model="selectedSource"
+              placeholder="Nguồn giao dịch"
+              clearable
+              @change="handleFilterChange"
+            >
+              <el-option label="Ngân hàng (Bank)" value="BANK" />
+              <el-option label="Thủ công (Manual)" value="MANUAL" />
+              <el-option label="Hệ thống (System)" value="SYSTEM" />
+            </el-select>
+          </div>
+
+          <div class="filter-item select-item">
+            <el-select
+              v-model="selectedStatus"
+              placeholder="Trạng thái phân loại"
+              clearable
+              @change="handleFilterChange"
+            >
+              <el-option label="Chưa phân loại" value="UNCLASSIFIED" />
+              <el-option label="Đã phân loại" value="CLASSIFIED" />
+            </el-select>
+          </div>
         </div>
       </div>
     </el-card>
@@ -293,7 +300,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Search, Plus, RefreshRight } from '@element-plus/icons-vue'
 import { useTransactionStore } from '@/stores/transaction'
@@ -323,6 +330,66 @@ const selectedSource = ref<TransactionSource | undefined>()
 const selectedStatus = ref<ClassificationStatus | undefined>(
   (route.query.status as ClassificationStatus) || undefined
 )
+
+const activeFilterCount = computed(() => {
+  let count = 0
+  if (searchQuery.value && searchQuery.value.trim()) count++
+  if (dateRange.value && dateRange.value.length === 2 && dateRange.value[0]) count++
+  if (selectedAccount.value) count++
+  if (selectedCategory.value) count++
+  if (selectedSource.value) count++
+  if (selectedStatus.value) count++
+  return count
+})
+
+const hasActiveFilters = computed(() => activeFilterCount.value > 0)
+
+const dateShortcuts = [
+  {
+    text: 'Hôm nay',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      return [start, end]
+    },
+  },
+  {
+    text: '7 ngày qua',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
+      return [start, end]
+    },
+  },
+  {
+    text: '30 ngày qua',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
+      return [start, end]
+    },
+  },
+  {
+    text: 'Tháng này',
+    value: () => {
+      const now = new Date()
+      const start = new Date(now.getFullYear(), now.getMonth(), 1)
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      return [start, end]
+    },
+  },
+  {
+    text: 'Tháng trước',
+    value: () => {
+      const now = new Date()
+      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      const end = new Date(now.getFullYear(), now.getMonth(), 0)
+      return [start, end]
+    },
+  },
+]
 
 function handleFilterChange() {
   transactionStore.setFilters({
@@ -355,6 +422,9 @@ function handleResetFilters() {
   selectedCategory.value = undefined
   selectedSource.value = undefined
   selectedStatus.value = undefined
+  if (route.query.status) {
+    router.replace({ query: {} })
+  }
   transactionStore.resetFilters()
 }
 
@@ -394,29 +464,128 @@ onMounted(() => {
   .filter-card {
     border-radius: 12px;
 
-    .filter-grid {
+    :deep(.el-card__body) {
+      padding: 14px 16px;
+    }
+
+    .filter-container {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 12px;
-      align-items: center;
 
-      .filter-item {
-        flex: 1;
-        min-width: 160px;
-
-        &.search-item {
-          flex: 2;
-          min-width: 220px;
-        }
-
-        &.date-item {
-          min-width: 240px;
-        }
-      }
-
-      .filter-actions {
+      .filter-row {
         display: flex;
         align-items: center;
+        gap: 12px;
+
+        &.primary-row {
+          flex-wrap: wrap;
+
+          .search-item {
+            flex: 1 1 280px;
+            min-width: 240px;
+
+            :deep(.el-input) {
+              width: 100%;
+            }
+          }
+
+          .date-item {
+            flex: 0 0 290px;
+            width: 290px;
+
+            :deep(.el-date-editor) {
+              width: 100% !important;
+            }
+
+            :deep(.el-date-editor--daterange.el-input__wrapper) {
+              width: 100% !important;
+              max-width: 100% !important;
+              box-sizing: border-box !important;
+            }
+          }
+
+          .filter-actions {
+            flex: 0 0 auto;
+
+            .reset-btn {
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+              height: 32px;
+              padding: 0 14px;
+              font-weight: 500;
+              transition: all 0.2s ease;
+
+              .filter-count {
+                font-weight: 600;
+                font-size: 0.8rem;
+                opacity: 0.9;
+              }
+            }
+          }
+        }
+
+        &.facet-row {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 12px;
+          width: 100%;
+
+          .select-item {
+            width: 100%;
+
+            :deep(.el-select) {
+              width: 100% !important;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .filter-card {
+      .filter-container {
+        .filter-row {
+          &.primary-row {
+            .date-item {
+              flex: 1 1 260px;
+              width: auto;
+            }
+          }
+          &.facet-row {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+      }
+    }
+  }
+
+  @media (max-width: 640px) {
+    .filter-card {
+      .filter-container {
+        .filter-row {
+          &.primary-row {
+            flex-direction: column;
+            align-items: stretch;
+
+            .search-item,
+            .date-item,
+            .filter-actions {
+              width: 100%;
+              flex: 1 1 100%;
+            }
+
+            .reset-btn {
+              width: 100%;
+              justify-content: center;
+            }
+          }
+          &.facet-row {
+            grid-template-columns: 1fr;
+          }
+        }
       }
     }
   }
