@@ -68,10 +68,14 @@ export interface PersonDebtSummary {
   personId: string
   personName: string
   personPhone?: string
-  receivableAmount: number
-  payableAmount: number
+  phone?: string
+  totalReceivable?: number
+  receivableAmount?: number
+  totalPayable?: number
+  payableAmount?: number
   netAmount: number
-  activeDebtsCount: number
+  openDebtsCount?: number
+  activeDebtsCount?: number
 }
 
 export interface DebtSummary {

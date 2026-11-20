@@ -61,20 +61,20 @@
         >
           <div class="badge-header">
             <span class="person-name" :title="ps.personName">{{ ps.personName }}</span>
-            <span class="debt-count">{{ ps.activeDebtsCount }} khoản</span>
+            <span class="debt-count">{{ ps.openDebtsCount ?? ps.activeDebtsCount ?? 0 }} khoản</span>
           </div>
           <div class="badge-body">
             <div class="row receivable">
               <span>Họ nợ:</span>
-              <span class="font-bold">+{{ formatCurrency(ps.receivableAmount) }}</span>
+              <span class="font-bold">+{{ formatCurrency(ps.totalReceivable ?? ps.receivableAmount ?? 0) }}</span>
             </div>
             <div class="row payable">
               <span>Mình nợ:</span>
-              <span class="font-bold">-{{ formatCurrency(ps.payableAmount) }}</span>
+              <span class="font-bold">-{{ formatCurrency(ps.totalPayable ?? ps.payableAmount ?? 0) }}</span>
             </div>
-            <div class="row net" :class="ps.netAmount >= 0 ? 'text-income' : 'text-expense'">
+            <div class="row net" :class="(ps.netAmount ?? 0) >= 0 ? 'text-income' : 'text-expense'">
               <span>Chênh lệch:</span>
-              <span>{{ ps.netAmount >= 0 ? '+' : '' }}{{ formatCurrency(ps.netAmount) }}</span>
+              <span>{{ (ps.netAmount ?? 0) >= 0 ? '+' : '' }}{{ formatCurrency(ps.netAmount ?? 0) }}</span>
             </div>
           </div>
         </div>

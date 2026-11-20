@@ -301,18 +301,18 @@
               <div class="debt-left">
                 <div class="debt-person-row">
                   <strong class="person-name">{{ ps.personName }}</strong>
-                  <el-tag size="small" type="info">{{ ps.activeDebtsCount }} khoản</el-tag>
+                  <el-tag size="small" type="info">{{ ps.openDebtsCount ?? ps.activeDebtsCount ?? 0 }} khoản</el-tag>
                 </div>
                 <div style="font-size: 12px; display: flex; gap: 12px; margin-top: 4px;">
-                  <span style="color: #10B981;">Họ nợ: +{{ formatCurrency(ps.receivableAmount) }}</span>
-                  <span style="color: #EF4444;">Mình nợ: -{{ formatCurrency(ps.payableAmount) }}</span>
+                  <span style="color: #10B981;">Họ nợ: +{{ formatCurrency(ps.totalReceivable ?? ps.receivableAmount ?? 0) }}</span>
+                  <span style="color: #EF4444;">Mình nợ: -{{ formatCurrency(ps.totalPayable ?? ps.payableAmount ?? 0) }}</span>
                 </div>
               </div>
 
               <div class="debt-right" style="text-align: right;">
                 <div style="font-size: 11px; color: var(--app-text-muted);">Chênh lệch:</div>
-                <strong :class="ps.netAmount >= 0 ? 'text-income' : 'text-expense'">
-                  {{ ps.netAmount >= 0 ? '+' : '' }}{{ formatCurrency(ps.netAmount) }}
+                <strong :class="(ps.netAmount ?? 0) >= 0 ? 'text-income' : 'text-expense'">
+                  {{ (ps.netAmount ?? 0) >= 0 ? '+' : '' }}{{ formatCurrency(ps.netAmount ?? 0) }}
                 </strong>
               </div>
             </div>
