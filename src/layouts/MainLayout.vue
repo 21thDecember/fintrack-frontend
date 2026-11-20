@@ -4,8 +4,8 @@
     <aside v-if="!isMobile" class="app-sidebar" :class="{ 'is-collapsed': isCollapsed }">
       <div class="sidebar-header">
         <div class="brand">
-          <span class="brand-logo">💰</span>
-          <span v-if="!isCollapsed" class="brand-name">FinTrack VN</span>
+          <span class="brand-logo">✨</span>
+          <span v-if="!isCollapsed" class="brand-name">LifeOS</span>
         </div>
         <el-button
           text
@@ -168,6 +168,9 @@ import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   Odometer,
+  Checked,
+  Timer,
+  Trophy,
   Tickets,
   Money,
   DataAnalysis,
@@ -197,6 +200,9 @@ const isCollapsed = ref(isTablet.value)
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: Odometer },
+  { path: '/tasks', label: 'Công việc', icon: Checked },
+  { path: '/habits', label: 'Thói quen', icon: Timer },
+  { path: '/goals', label: 'Mục tiêu', icon: Trophy },
   { path: '/transactions', label: 'Giao dịch', icon: Tickets },
   { path: '/debts', label: 'Sổ nợ / Công nợ', icon: Money },
   { path: '/reports', label: 'Báo cáo', icon: DataAnalysis },

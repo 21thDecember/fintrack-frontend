@@ -36,6 +36,129 @@
       </template>
     </el-alert>
 
+    <!-- LifeOS Daily Focus: Tasks, Habits & Goals -->
+    <div class="lifeos-daily-grid">
+      <!-- Card 1: Today's Tasks -->
+      <div class="daily-focus-card">
+        <div class="card-body">
+          <div class="card-head">
+            <span class="card-title">
+              <span class="emoji">📌</span> Công việc hôm nay
+            </span>
+            <router-link to="/tasks" class="view-link green">
+              Xem tất cả →
+            </router-link>
+          </div>
+
+          <div v-if="todayPendingTasks.length === 0" class="empty-note">
+            🎉 Không còn công việc tồn đọng hôm nay!
+          </div>
+          <div v-else class="item-list">
+            <div
+              v-for="task in todayPendingTasks.slice(0, 3)"
+              :key="task.id"
+              class="focus-item"
+            >
+              <div class="item-left">
+                <button
+                  class="mini-check"
+                  @click="taskStore.updateStatus(task.id, 'COMPLETED')"
+                />
+                <span class="item-name" :class="{ overdue: task.isOverdue }">
+                  {{ task.title }}
+                </span>
+              </div>
+              <span v-if="task.isOverdue" class="overdue-tag">Quá hạn</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-foot">
+          <span>{{ taskStore.statistics?.completedTasks || 0 }}/{{ taskStore.statistics?.totalTasks || 0 }} đã xong</span>
+          <span class="foot-highlight green">{{ taskStore.statistics?.completionRate || 0 }}%</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Today's Habits -->
+      <div class="daily-focus-card">
+        <div class="card-body">
+          <div class="card-head">
+            <span class="card-title">
+              <span class="emoji">⚡</span> Thói quen hôm nay
+            </span>
+            <router-link to="/habits" class="view-link amber">
+              Xem tất cả →
+            </router-link>
+          </div>
+
+          <div v-if="habitStore.todayHabits.length === 0" class="empty-note">
+            🌿 Không có thói quen trong lịch hôm nay.
+          </div>
+          <div v-else class="item-list">
+            <div
+              v-for="habit in habitStore.todayHabits.slice(0, 3)"
+              :key="habit.id"
+              class="focus-item"
+            >
+              <span class="item-name" :class="{ completed: habit.isCompletedToday }">
+                {{ habit.name }}
+              </span>
+              <button
+                class="mini-checkin-btn"
+                :class="{ done: habit.isCompletedToday }"
+                @click="habitStore.checkin(habit.id)"
+              >
+                {{ habit.isCompletedToday ? '✓ Xong' : '+1 Điểm danh' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-foot">
+          <span>{{ habitStore.statistics?.completedTodayCount || 0 }}/{{ habitStore.statistics?.todayScheduledCount || 0 }} thói quen</span>
+          <span class="foot-highlight amber">{{ habitStore.statistics?.overallCompletionRate || 0 }}% nhất quán</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Goals In Progress -->
+      <div class="daily-focus-card">
+        <div class="card-body">
+          <div class="card-head">
+            <span class="card-title">
+              <span class="emoji">🎯</span> Mục tiêu trọng tâm
+            </span>
+            <router-link to="/goals" class="view-link indigo">
+              Xem tất cả →
+            </router-link>
+          </div>
+
+          <div v-if="goalStore.goals.length === 0" class="empty-note">
+            🚀 Hãy đặt mục tiêu đầu tiên của bạn!
+          </div>
+          <div v-else class="goal-list">
+            <div
+              v-for="goal in goalStore.goals.slice(0, 2)"
+              :key="goal.id"
+              class="mini-goal-item"
+            >
+              <div class="goal-top">
+                <router-link :to="'/goals/' + goal.id" class="goal-title">
+                  {{ goal.title }}
+                </router-link>
+                <span class="goal-pct">{{ goal.progressPercentage }}%</span>
+              </div>
+              <el-progress :percentage="goal.progressPercentage" :show-text="false" :stroke-width="5" color="#6366F1" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card-foot">
+          <span>{{ goalStore.statistics?.completedGoals || 0 }}/{{ goalStore.statistics?.totalGoals || 0 }} hoàn thành</span>
+          <span class="foot-highlight indigo">{{ goalStore.statistics?.averageProgressPercentage || 0 }}% TB</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Row 1: Summary Assets Cards (4 Cards) -->
     <div class="stats-grid">
       <StatCard
@@ -335,7 +458,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Wallet,
@@ -352,6 +475,9 @@ import {
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDebtStore } from '@/stores/debt'
+import { useTaskStore } from '@/stores/task'
+import { useHabitStore } from '@/stores/habit'
+import { useGoalStore } from '@/stores/goal'
 import { useResponsive } from '@/composables/useResponsive'
 import { dashboardApi } from '@/api/dashboardApi'
 import type { DashboardData } from '@/types/dashboard'
@@ -368,6 +494,9 @@ import DebtPaymentDialog from '@/components/debts/DebtPaymentDialog.vue'
 const router = useRouter()
 const authStore = useAuthStore()
 const debtStore = useDebtStore()
+const taskStore = useTaskStore()
+const habitStore = useHabitStore()
+const goalStore = useGoalStore()
 const { isMobile } = useResponsive()
 
 const selectedTimeRange = ref('thisMonth')
@@ -377,6 +506,10 @@ const loading = ref(false)
 const activeDebtTab = ref<'UPCOMING' | 'BY_PERSON'>('UPCOMING')
 const showPaymentDialog = ref(false)
 const selectedDebt = ref<Debt | null>(null)
+
+const todayPendingTasks = computed(() => {
+  return taskStore.tasks.filter(t => t.status !== 'COMPLETED' && t.status !== 'CANCELLED')
+})
 
 async function fetchDashboard() {
   loading.value = true
@@ -410,6 +543,12 @@ function handlePaymentSuccess() {
 onMounted(() => {
   fetchDashboard()
   debtStore.fetchPersonSummaries()
+  taskStore.fetchTasks()
+  taskStore.fetchStatistics()
+  habitStore.fetchTodayHabits()
+  habitStore.fetchStatistics()
+  goalStore.fetchGoals()
+  goalStore.fetchStatistics()
 })
 </script>
 
@@ -418,6 +557,235 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+
+  .lifeos-daily-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+
+    @media (max-width: 1024px) {
+      grid-template-columns: 1fr;
+    }
+
+    .daily-focus-card {
+      background: var(--app-card-bg);
+      border: 1px solid var(--app-card-border);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+      &:hover {
+        border-color: rgba(99, 102, 241, 0.35);
+      }
+
+      .card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        .card-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+
+          .card-title {
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: var(--app-text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            .emoji {
+              font-size: 1rem;
+            }
+          }
+
+          .view-link {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: opacity 0.2s;
+
+            &.green { color: #10B981; }
+            &.amber { color: #F59E0B; }
+            &.indigo { color: #6366F1; }
+
+            &:hover {
+              text-decoration: underline;
+              opacity: 0.85;
+            }
+          }
+        }
+
+        .empty-note {
+          font-size: 0.8125rem;
+          color: var(--app-text-muted);
+          padding: 14px 0;
+          text-align: center;
+        }
+
+        .item-list {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+
+          .focus-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            background: rgba(0, 0, 0, 0.02);
+
+            &:hover {
+              background: rgba(0, 0, 0, 0.04);
+            }
+
+            .item-left {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              min-width: 0;
+              flex: 1;
+
+              .mini-check {
+                width: 16px;
+                height: 16px;
+                border-radius: 4px;
+                border: 1.5px solid var(--app-card-border);
+                background: transparent;
+                cursor: pointer;
+                flex-shrink: 0;
+                transition: all 0.2s;
+
+                &:hover {
+                  border-color: #10B981;
+                  background: rgba(16, 185, 129, 0.1);
+                }
+              }
+
+              .item-name {
+                color: var(--app-text);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+
+                &.overdue {
+                  color: #EF4444;
+                  font-weight: 600;
+                }
+              }
+            }
+
+            .item-name {
+              color: var(--app-text);
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+
+              &.completed {
+                text-decoration: line-through;
+                color: var(--app-text-muted);
+              }
+            }
+
+            .overdue-tag {
+              font-size: 0.6875rem;
+              font-weight: 700;
+              color: #EF4444;
+              flex-shrink: 0;
+            }
+
+            .mini-checkin-btn {
+              padding: 3px 10px;
+              border-radius: 6px;
+              font-size: 0.75rem;
+              font-weight: 700;
+              cursor: pointer;
+              border: none;
+              flex-shrink: 0;
+              transition: all 0.2s;
+              background: rgba(245, 158, 11, 0.15);
+              color: #D97706;
+
+              &:hover {
+                background: rgba(245, 158, 11, 0.25);
+              }
+
+              &.done {
+                background: rgba(16, 185, 129, 0.15);
+                color: #059669;
+              }
+            }
+          }
+        }
+
+        .goal-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+
+          .mini-goal-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+
+            .goal-top {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              font-size: 0.8125rem;
+
+              .goal-title {
+                font-weight: 600;
+                color: var(--app-text);
+                text-decoration: none;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 80%;
+
+                &:hover {
+                  color: #6366F1;
+                }
+              }
+
+              .goal-pct {
+                font-weight: 700;
+                color: #6366F1;
+              }
+            }
+          }
+        }
+      }
+
+      .card-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 10px;
+        border-top: 1px solid var(--app-card-border);
+        font-size: 0.75rem;
+        color: var(--app-text-muted);
+
+        .foot-highlight {
+          font-weight: 700;
+
+          &.green { color: #10B981; }
+          &.amber { color: #F59E0B; }
+          &.indigo { color: #6366F1; }
+        }
+      }
+    }
+  }
 
   .dashboard-header {
     display: flex;

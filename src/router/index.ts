@@ -18,7 +18,31 @@ const routes: RouteRecordRaw[] = [
         path: 'dashboard',
         name: 'Dashboard',
         component: () => import('@/views/dashboard/DashboardView.vue'),
-        meta: { title: 'Tổng quan tài chính' }
+        meta: { title: 'Tổng quan LifeOS' }
+      },
+      {
+        path: 'tasks',
+        name: 'Tasks',
+        component: () => import('@/views/tasks/TaskListView.vue'),
+        meta: { title: 'Quản lý Công việc' }
+      },
+      {
+        path: 'habits',
+        name: 'Habits',
+        component: () => import('@/views/habits/HabitListView.vue'),
+        meta: { title: 'Theo dõi Thói quen' }
+      },
+      {
+        path: 'goals',
+        name: 'Goals',
+        component: () => import('@/views/goals/GoalListView.vue'),
+        meta: { title: 'Mục tiêu cá nhân' }
+      },
+      {
+        path: 'goals/:id',
+        name: 'GoalDetail',
+        component: () => import('@/views/goals/GoalDetailView.vue'),
+        meta: { title: 'Chi tiết Mục tiêu' }
       },
       {
         path: 'transactions',
