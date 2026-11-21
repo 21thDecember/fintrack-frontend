@@ -77,11 +77,14 @@ function getCategoryInitials(name?: string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
+  padding: 10px 12px;
   background-color: var(--app-card-bg);
   border: 1px solid var(--app-card-border);
   border-radius: 10px;
   cursor: pointer;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 
   &:active {
@@ -91,7 +94,7 @@ function getCategoryInitials(name?: string) {
   .card-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     min-width: 0;
     flex: 1;
   }

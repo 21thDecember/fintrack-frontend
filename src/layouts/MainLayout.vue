@@ -254,10 +254,10 @@
             </el-badge>
           </router-link>
 
-          <!-- Quick Action Button -->
-          <router-link v-if="route.path !== '/transactions/create'" to="/transactions/create">
+          <!-- Quick Action Button (Desktop & Tablet only, mobile uses bottom FAB) -->
+          <router-link v-if="!isMobile && route.path !== '/transactions/create'" to="/transactions/create">
             <el-button type="primary" :icon="Plus" round>
-              <span v-if="!isMobile">Thêm giao dịch</span>
+              Thêm giao dịch
             </el-button>
           </router-link>
 
@@ -866,7 +866,10 @@ function handleLogout() {
 
   .app-layout.is-mobile & {
     margin-left: 0;
-    padding-bottom: 70px;
+    min-width: 0;
+    max-width: 100vw;
+    overflow-x: hidden;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   }
 
   .app-header {
@@ -882,7 +885,12 @@ function handleLogout() {
     z-index: 40;
 
     @media (max-width: 640px) {
-      padding: 0 16px;
+      height: 56px;
+      padding: 0 12px;
+      max-width: 100vw;
+      width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     .page-title {
@@ -919,7 +927,10 @@ function handleLogout() {
     padding: 24px;
 
     @media (max-width: 640px) {
-      padding: 16px;
+      padding: 14px 12px calc(84px + env(safe-area-inset-bottom, 0px));
+      min-width: 0;
+      max-width: 100%;
+      overflow-x: hidden;
     }
   }
 }
@@ -930,7 +941,9 @@ function handleLogout() {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 60px;
+  height: calc(60px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
   background-color: var(--app-card-bg);
   border-top: 1px solid var(--app-card-border);
   display: flex;

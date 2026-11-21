@@ -582,7 +582,10 @@ onMounted(() => {
 .dashboard-view {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
 
   .lifeos-daily-grid {
     display: grid;
@@ -856,14 +859,18 @@ onMounted(() => {
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    gap: 14px;
+    width: 100%;
+    min-width: 0;
 
     @media (max-width: 1024px) {
       grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
     }
 
     @media (max-width: 640px) {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
     }
   }
 

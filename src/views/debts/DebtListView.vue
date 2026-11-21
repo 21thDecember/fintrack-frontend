@@ -652,15 +652,27 @@ onMounted(() => {
 .debt-list-view {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
 
   .summary-cards-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    gap: 14px;
+    width: 100%;
+    min-width: 0;
 
     @media (max-width: 768px) {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+
+      :deep(.stat-card) {
+        &:last-child:nth-child(odd) {
+          grid-column: span 2;
+        }
+      }
     }
   }
 
@@ -806,6 +818,19 @@ onMounted(() => {
       border-bottom: 1px solid var(--app-card-border);
       margin-bottom: 16px;
 
+      @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+
+        .header-actions {
+          width: 100%;
+          .el-button {
+            width: 100%;
+          }
+        }
+      }
+
       .debt-tabs {
         border-bottom: none;
       }
@@ -816,6 +841,18 @@ onMounted(() => {
       gap: 12px;
       flex-wrap: wrap;
       margin-bottom: 16px;
+
+      @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: stretch;
+
+        .filter-select-status,
+        .filter-select-person,
+        .filter-search-input {
+          width: 100% !important;
+          min-width: 0 !important;
+        }
+      }
 
       .filter-select-status {
         width: 190px;

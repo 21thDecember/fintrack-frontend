@@ -608,14 +608,17 @@ onMounted(() => {
 .tasks-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
 
   .page-top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
 
     .title-group {
       .page-title {
@@ -640,6 +643,20 @@ onMounted(() => {
         font-size: 0.875rem;
         color: var(--app-text-muted);
         margin-top: 4px;
+        line-height: 1.4;
+      }
+    }
+
+    @media (max-width: 640px) {
+      flex-direction: column;
+      align-items: flex-start;
+
+      .title-group,
+      .action-group {
+        width: 100%;
+        .el-button {
+          width: 100%;
+        }
       }
     }
   }
@@ -648,16 +665,46 @@ onMounted(() => {
   .stats-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    gap: 14px;
+    width: 100%;
+    min-width: 0;
 
     @media (max-width: 1024px) {
       grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
     }
     @media (max-width: 640px) {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+
+      .stat-box {
+        padding: 12px 10px !important;
+
+        .stat-top {
+          .stat-label {
+            font-size: 0.6875rem !important;
+          }
+          .stat-icon-wrap {
+            width: 24px !important;
+            height: 24px !important;
+          }
+        }
+
+        .stat-main {
+          .stat-num {
+            font-size: 1.1875rem !important;
+          }
+          .stat-unit,
+          .stat-alert-text,
+          .stat-rate {
+            font-size: 0.6875rem !important;
+          }
+        }
+      }
     }
 
     .stat-box {
+      min-width: 0;
       background: var(--app-card-bg);
       border: 1px solid var(--app-card-border);
       border-radius: 12px;
@@ -747,7 +794,12 @@ onMounted(() => {
       align-items: center;
       gap: 8px;
       overflow-x: auto;
-      padding-bottom: 4px;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 6px;
       border-bottom: 1px solid var(--app-card-border);
 
       .tab-btn {

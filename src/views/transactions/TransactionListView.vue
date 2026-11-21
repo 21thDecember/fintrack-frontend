@@ -289,13 +289,6 @@
         />
       </div>
     </el-card>
-
-    <!-- Floating Action Button on Mobile -->
-    <div v-if="isMobile" class="fab-wrapper">
-      <router-link to="/transactions/create">
-        <el-button type="primary" :icon="Plus" circle class="fab-btn" />
-      </router-link>
-    </div>
   </div>
 </template>
 
@@ -460,6 +453,9 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
 
   .filter-card {
     border-radius: 12px;
@@ -583,7 +579,8 @@ onMounted(() => {
             }
           }
           &.facet-row {
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
           }
         }
       }
@@ -595,6 +592,22 @@ onMounted(() => {
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+
+    @media (max-width: 640px) {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+
+      .summary-pill {
+        padding: 8px 10px !important;
+        font-size: 0.75rem !important;
+        justify-content: space-between;
+
+        &.diff {
+          grid-column: span 2;
+        }
+      }
+    }
 
     .summary-pill {
       display: flex;
@@ -659,20 +672,6 @@ onMounted(() => {
       display: flex;
       justify-content: flex-end;
       margin-top: 20px;
-    }
-  }
-
-  .fab-wrapper {
-    position: fixed;
-    right: 20px;
-    bottom: 80px;
-    z-index: 99;
-
-    .fab-btn {
-      width: 52px;
-      height: 52px;
-      font-size: 20px;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
     }
   }
 }

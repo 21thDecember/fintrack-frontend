@@ -111,5 +111,38 @@ const displayValue = computed(() => {
     border-radius: 12px;
     flex-shrink: 0;
   }
+
+  @media (max-width: 640px) {
+    :deep(.el-card__body) {
+      padding: 12px 10px !important;
+    }
+
+    .stat-title {
+      font-size: 0.6875rem !important;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stat-value {
+      font-size: 1.125rem !important;
+    }
+
+    .stat-icon-wrapper {
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: 8px !important;
+
+      :deep(.el-icon) {
+        font-size: 18px !important;
+      }
+    }
+
+    .stat-footer {
+      margin-top: 4px;
+      font-size: 0.6875rem;
+    }
+  }
 }
 </style>

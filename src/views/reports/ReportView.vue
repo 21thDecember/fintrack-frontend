@@ -470,7 +470,10 @@ onMounted(() => {
 .report-view {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
 
   .report-header {
     display: flex;
@@ -478,6 +481,21 @@ onMounted(() => {
     align-items: center;
     flex-wrap: wrap;
     gap: 12px;
+
+    @media (max-width: 640px) {
+      flex-direction: column;
+      align-items: stretch;
+
+      .period-navigator {
+        width: 100%;
+        justify-content: space-between;
+
+        .period-tag {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    }
 
     .report-type-tabs {
       border-bottom: none;
@@ -525,19 +543,25 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .cards-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    gap: 14px;
+    width: 100%;
+    min-width: 0;
 
     @media (max-width: 1024px) {
       grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
     }
 
     @media (max-width: 640px) {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
     }
   }
 

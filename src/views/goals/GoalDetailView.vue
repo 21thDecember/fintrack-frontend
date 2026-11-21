@@ -727,7 +727,10 @@ onMounted(() => {
 .goal-detail-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
 
   .back-nav-bar {
     .back-link {
@@ -755,7 +758,9 @@ onMounted(() => {
   .detail-body {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
+    min-width: 0;
+    max-width: 100%;
 
     /* Goal Header Banner */
     .goal-banner-card {
@@ -767,6 +772,12 @@ onMounted(() => {
       display: flex;
       flex-direction: column;
       gap: 16px;
+      min-width: 0;
+      max-width: 100%;
+
+      @media (max-width: 640px) {
+        padding: 16px;
+      }
 
       .banner-top {
         display: flex;
@@ -774,6 +785,18 @@ onMounted(() => {
         align-items: flex-start;
         gap: 16px;
         flex-wrap: wrap;
+
+        @media (max-width: 640px) {
+          flex-direction: column;
+          align-items: stretch;
+
+          .banner-actions {
+            width: 100%;
+            .el-button {
+              width: 100%;
+            }
+          }
+        }
 
         .banner-left {
           display: flex;
@@ -918,11 +941,23 @@ onMounted(() => {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 16px;
+          gap: 12px;
           padding-top: 10px;
           margin-top: 4px;
           border-top: 1px dashed var(--app-card-border);
           flex-wrap: wrap;
+
+          @media (max-width: 640px) {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+
+            .numeric-control-left,
+            .numeric-control-right {
+              width: 100%;
+              justify-content: space-between;
+            }
+          }
 
           .numeric-control-left {
             display: flex;
@@ -1173,6 +1208,24 @@ onMounted(() => {
         .input-milestone-title {
           flex: 1;
           min-width: 200px;
+        }
+
+        @media (max-width: 640px) {
+          flex-direction: column;
+          align-items: stretch;
+
+          .input-milestone-title {
+            width: 100% !important;
+            min-width: 0 !important;
+          }
+
+          :deep(.el-date-editor) {
+            width: 100% !important;
+          }
+
+          .el-button {
+            width: 100%;
+          }
         }
       }
     }
