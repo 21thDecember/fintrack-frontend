@@ -158,6 +158,49 @@
           <span class="foot-highlight indigo">{{ goalStore.statistics?.averageProgressPercentage || 0 }}% TB</span>
         </div>
       </div>
+
+      <!-- Card 4: Today's Journal & Mood -->
+      <div class="daily-focus-card">
+        <div class="card-body">
+          <div class="card-head">
+            <span class="card-title">
+              <span class="emoji">📖</span> Nhật ký & Tâm trạng
+            </span>
+            <router-link to="/journals" class="view-link purple">
+              Xem tất cả →
+            </router-link>
+          </div>
+
+          <div v-if="!todayJournal" class="empty-note">
+            🌿 Bạn chưa ghi lại tâm trạng & nhật ký hôm nay.
+            <div style="margin-top: 6px;">
+              <router-link to="/journals/daily">
+                <el-button type="primary" size="small" round>Viết nhật ký</el-button>
+              </router-link>
+            </div>
+          </div>
+          <div v-else class="journal-preview-box">
+            <div class="today-mood-row">
+              <span class="mood-em">{{ todayMoodEmoji }}</span>
+              <span class="mood-lb">{{ todayMoodLabel }}</span>
+              <span v-if="todayJournal?.energyScore" class="energy-pill">⚡ {{ todayJournal.energyScore }}/5</span>
+            </div>
+            <p v-if="todayJournal?.title" class="journal-title-p">
+              {{ todayJournal.title }}
+            </p>
+            <p v-else-if="todayJournal?.content" class="journal-snippet-p">
+              {{ todayJournal.content.substring(0, 60) }}...
+            </p>
+          </div>
+        </div>
+
+        <div class="card-foot">
+          <span>{{ todayJournal?.content ? 'Đã viết nhật ký' : 'Chưa viết nội dung' }}</span>
+          <router-link to="/journals/daily" class="foot-highlight purple">
+            {{ todayJournal ? 'Chỉnh sửa →' : 'Viết ngay →' }}
+          </router-link>
+        </div>
+      </div>
     </div>
 
     <!-- Row 1: Summary Assets Cards (4 Cards) -->
@@ -481,6 +524,9 @@ import { useHabitStore } from '@/stores/habit'
 import { useGoalStore } from '@/stores/goal'
 import { useResponsive } from '@/composables/useResponsive'
 import { dashboardApi } from '@/api/dashboardApi'
+import { journalApi } from '@/api/journalApi'
+import type { DailyJournal } from '@/types/journal'
+import { MOOD_CONFIG } from '@/types/mood'
 import type { DashboardData } from '@/types/dashboard'
 import type { Debt } from '@/types/debt'
 import { formatCurrency } from '@/utils/currency'
@@ -566,6 +612,24 @@ async function toggleHabitCheckin(habit: any) {
   }
 }
 
+const todayJournal = ref<DailyJournal | null>(null)
+const todayMoodEmoji = computed(() => {
+  if (!todayJournal.value?.moodScore) return '❓'
+  return MOOD_CONFIG[todayJournal.value.moodScore]?.emoji || '😐'
+})
+const todayMoodLabel = computed(() => {
+  if (!todayJournal.value?.moodScore) return 'Chưa ghi nhận'
+  return MOOD_CONFIG[todayJournal.value.moodScore]?.label || 'Bình thường'
+})
+
+async function loadTodayJournal() {
+  try {
+    todayJournal.value = await journalApi.getJournalByDate(getTodayDateString())
+  } catch (err) {
+    console.error('Failed to load today journal', err)
+  }
+}
+
 onMounted(() => {
   fetchDashboard()
   debtStore.fetchPersonSummaries()
@@ -575,6 +639,7 @@ onMounted(() => {
   habitStore.fetchStatistics()
   goalStore.fetchGoals()
   goalStore.fetchStatistics()
+  loadTodayJournal()
 })
 </script>
 
@@ -589,10 +654,14 @@ onMounted(() => {
 
   .lifeos-daily-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1200px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 768px) {
       grid-template-columns: 1fr;
     }
 
@@ -644,11 +713,48 @@ onMounted(() => {
             &.green { color: #10B981; }
             &.amber { color: #F59E0B; }
             &.indigo { color: #6366F1; }
+            &.purple { color: #8B5CF6; }
 
             &:hover {
               text-decoration: underline;
               opacity: 0.85;
             }
+          }
+        }
+
+        .journal-preview-box {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          padding: 4px 0;
+
+          .today-mood-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            .mood-em { font-size: 20px; line-height: 1; }
+            .mood-lb { font-size: 13px; font-weight: 700; color: var(--app-text); }
+            .energy-pill {
+              font-size: 11px;
+              background: rgba(245, 158, 11, 0.12);
+              color: #d97706;
+              padding: 1px 6px;
+              border-radius: 4px;
+              font-weight: 600;
+            }
+          }
+          .journal-title-p {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--app-text);
+            margin: 0;
+            line-height: 1.3;
+          }
+          .journal-snippet-p {
+            font-size: 11px;
+            color: var(--app-text-muted);
+            margin: 0;
+            line-height: 1.3;
           }
         }
 
@@ -816,6 +922,7 @@ onMounted(() => {
           &.green { color: #10B981; }
           &.amber { color: #F59E0B; }
           &.indigo { color: #6366F1; }
+          &.purple { color: #8B5CF6; text-decoration: none; }
         }
       }
     }

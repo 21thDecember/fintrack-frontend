@@ -45,6 +45,30 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Chi tiết Mục tiêu' }
       },
       {
+        path: 'journals',
+        name: 'Journals',
+        component: () => import('@/views/journal/JournalOverviewView.vue'),
+        meta: { title: 'Nhật ký & Đánh giá' }
+      },
+      {
+        path: 'journals/daily',
+        name: 'DailyJournal',
+        component: () => import('@/views/journal/DailyJournalView.vue'),
+        meta: { title: 'Nhật ký ngày & Tâm trạng' }
+      },
+      {
+        path: 'journals/mood',
+        name: 'MoodCalendar',
+        component: () => import('@/views/journal/MoodCalendarView.vue'),
+        meta: { title: 'Lịch theo dõi Tâm trạng' }
+      },
+      {
+        path: 'journals/reviews',
+        name: 'WeeklyReview',
+        component: () => import('@/views/journal/WeeklyReviewView.vue'),
+        meta: { title: 'Tổng kết & Đánh giá Tuần' }
+      },
+      {
         path: 'transactions',
         name: 'Transactions',
         component: () => import('@/views/transactions/TransactionListView.vue'),

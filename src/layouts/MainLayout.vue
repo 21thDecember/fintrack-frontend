@@ -322,7 +322,7 @@
                 <el-icon :size="16"><Compass /></el-icon>
                 <span>LifeOS (Cá nhân)</span>
               </span>
-              <span class="module-tag lifeos-tag">3 mục</span>
+              <span class="module-tag lifeos-tag">{{ lifeosItems.length }} mục</span>
             </div>
             <div class="drawer-sub-links">
               <router-link
@@ -456,7 +456,8 @@ import {
   Sunny,
   SwitchButton,
   ArrowDown,
-  Menu
+  Menu,
+  EditPen
 } from '@element-plus/icons-vue'
 import { useResponsive } from '@/composables/useResponsive'
 import { useTheme } from '@/composables/useTheme'
@@ -482,7 +483,8 @@ const openGroups = ref<Record<string, boolean>>({
 const lifeosItems = [
   { path: '/tasks', label: 'Công việc', icon: Checked },
   { path: '/habits', label: 'Thói quen', icon: Timer },
-  { path: '/goals', label: 'Mục tiêu', icon: Trophy }
+  { path: '/goals', label: 'Mục tiêu', icon: Trophy },
+  { path: '/journals', label: 'Nhật ký & Review', icon: EditPen }
 ]
 
 // Submenu Items for Finance Module
@@ -515,7 +517,8 @@ function isGroupActive(groupId: string): boolean {
   if (groupId === 'lifeos') {
     return route.path.startsWith('/tasks') ||
            route.path.startsWith('/habits') ||
-           route.path.startsWith('/goals')
+           route.path.startsWith('/goals') ||
+           route.path.startsWith('/journals')
   }
   if (groupId === 'finance') {
     return route.path.startsWith('/transactions') ||
