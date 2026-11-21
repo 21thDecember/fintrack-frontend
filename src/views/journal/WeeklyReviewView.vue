@@ -119,7 +119,7 @@
           <el-input
             v-model="reviewForm.summary"
             type="textarea"
-            :rows="3"
+            :autosize="{ minRows: 3, maxRows: 8 }"
             placeholder="Tóm tắt ngắn gọn các sự kiện chính và cảm nhận chung về tuần vừa qua..."
           />
         </div>
@@ -134,7 +134,7 @@
             <el-input
               v-model="reviewForm.wins"
               type="textarea"
-              :rows="3"
+              :autosize="{ minRows: 3, maxRows: 8 }"
               placeholder="VD: Đã hoàn thành dự án trước hạn, chạy bộ được 3 buổi..."
             />
           </div>
@@ -147,7 +147,7 @@
             <el-input
               v-model="reviewForm.challenges"
               type="textarea"
-              :rows="3"
+              :autosize="{ minRows: 3, maxRows: 8 }"
               placeholder="VD: Chưa ngủ sớm như dự kiến, bị phân tâm bởi điện thoại..."
             />
           </div>
@@ -163,7 +163,7 @@
             <el-input
               v-model="reviewForm.lessonsLearned"
               type="textarea"
-              :rows="3"
+              :autosize="{ minRows: 3, maxRows: 8 }"
               placeholder="Bài học hoặc nhận thức sâu sắc rút ra từ những trải nghiệm trong tuần..."
             />
           </div>
@@ -176,7 +176,7 @@
             <el-input
               v-model="reviewForm.improvements"
               type="textarea"
-              :rows="3"
+              :autosize="{ minRows: 3, maxRows: 8 }"
               placeholder="Những thay đổi cụ thể để tuần tới tốt hơn..."
             />
           </div>
@@ -191,7 +191,7 @@
           <el-input
             v-model="reviewForm.nextWeekPriorities"
             type="textarea"
-            :rows="3"
+            :autosize="{ minRows: 3, maxRows: 8 }"
             placeholder="1. Mục tiêu trọng tâm 1&#10;2. Mục tiêu trọng tâm 2&#10;3. Mục tiêu trọng tâm 3"
           />
         </div>
@@ -204,7 +204,7 @@
           <el-input
             v-model="reviewForm.additionalNotes"
             type="textarea"
-            :rows="2"
+            :autosize="{ minRows: 2, maxRows: 6 }"
             placeholder="Lời nhắn nhủ cho bản thân, lời nhắc nhở..."
           />
         </div>

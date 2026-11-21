@@ -116,7 +116,7 @@
             <el-input
               v-model="journalForm.content"
               type="textarea"
-              :rows="6"
+              :autosize="{ minRows: 6, maxRows: 12 }"
               placeholder="Hôm nay của bạn diễn ra như thế nào? Bạn đã gặp gỡ ai, học được gì hay có điều gì muốn ghi lại?..."
             />
           </div>
@@ -128,7 +128,7 @@
               <el-input
                 v-model="journalForm.highlight"
                 type="textarea"
-                :rows="2"
+                :autosize="{ minRows: 2, maxRows: 6 }"
                 placeholder="Điều tuyệt vời nhất hoặc đáng nhớ nhất hôm nay..."
               />
             </div>
@@ -138,7 +138,7 @@
               <el-input
                 v-model="journalForm.gratitude"
                 type="textarea"
-                :rows="2"
+                :autosize="{ minRows: 2, maxRows: 6 }"
                 placeholder="Những điều bạn cảm thấy biết ơn trong ngày hôm nay..."
               />
             </div>
@@ -148,7 +148,7 @@
               <el-input
                 v-model="journalForm.improvement"
                 type="textarea"
-                :rows="2"
+                :autosize="{ minRows: 2, maxRows: 6 }"
                 placeholder="Điều gì bạn có thể làm tốt hơn nếu được làm lại?..."
               />
             </div>
@@ -158,7 +158,7 @@
               <el-input
                 v-model="journalForm.tomorrowPlan"
                 type="textarea"
-                :rows="2"
+                :autosize="{ minRows: 2, maxRows: 6 }"
                 placeholder="Việc ưu tiên quan trọng nhất bạn muốn hoàn thành vào ngày mai..."
               />
             </div>
