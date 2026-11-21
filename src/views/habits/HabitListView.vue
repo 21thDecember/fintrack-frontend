@@ -74,52 +74,231 @@
       </div>
     </div>
 
-    <!-- Section 1: Today's Habits (Quick Check-in) -->
+    <!-- Section 1: Daily Habits Inspector & Weekly Matrix -->
     <div class="section-block">
-      <div class="section-header">
-        <h2 class="section-title">
-          <span>🎯 Thói quen hôm nay</span>
-          <span class="section-badge">({{ habitStore.todayHabits.length }} thói quen)</span>
-        </h2>
-      </div>
+      <div class="section-header-wrap">
+        <div class="section-header-left">
+          <h2 class="section-title">
+            <span v-if="selectedDate === todayDateStr">🎯 Thói quen hôm nay</span>
+            <span v-else>📅 Thói quen ngày {{ formatDisplayDate(selectedDate) }}</span>
+            <span class="section-badge">({{ completedHabitsCount }}/{{ totalDateHabitsCount }} hoàn thành)</span>
+          </h2>
+          <p class="section-subtitle">
+            Xem theo ngày cụ thể hoặc theo dõi cả tuần để biết thói quen nào đã được tick
+          </p>
+        </div>
 
-      <div v-if="habitStore.todayHabits.length === 0" class="empty-today-box">
-        <div class="empty-icon">🌿</div>
-        <p class="empty-text">Không có thói quen nào cần thực hiện hôm nay.</p>
-        <p class="empty-sub">Hãy tạo thói quen mới hoặc điều chỉnh lịch ngày hoạt động trong tuần.</p>
-      </div>
+        <!-- Date Controls & View Switcher -->
+        <div class="section-header-controls">
+          <div class="date-nav-box">
+            <el-button-group>
+              <el-button size="default" :icon="ArrowLeft" title="Ngày trước" @click="goToPrevDay" />
+              <el-button
+                v-if="selectedDate !== todayDateStr"
+                size="default"
+                type="primary"
+                plain
+                @click="goToToday"
+              >
+                Hôm nay
+              </el-button>
+              <el-button size="default" :icon="ArrowRight" title="Ngày sau" @click="goToNextDay" />
+            </el-button-group>
 
-      <div v-else class="today-grid">
-        <div
-          v-for="th in habitStore.todayHabits"
-          :key="th.id"
-          class="today-habit-card"
-          :class="{ completed: isHabitDone(th) }"
-        >
-          <div class="today-card-info">
-            <span class="habit-name" :class="{ strike: isHabitDone(th) }">
-              {{ th.name }}
-            </span>
-
-            <div class="habit-sub-row">
-              <span class="streak-badge">
-                🔥 {{ th.currentStreak }} ngày streak
-              </span>
-              <span class="dot">•</span>
-              <span class="count-text">{{ th.todayCount }}/{{ th.targetCount }} lần</span>
-            </div>
+            <el-date-picker
+              v-model="selectedDate"
+              type="date"
+              value-format="YYYY-MM-DD"
+              format="DD/MM/YYYY"
+              placeholder="Chọn ngày"
+              :clearable="false"
+              style="width: 140px;"
+              @change="onDateChange"
+            />
           </div>
 
-          <!-- 1-Click Checkin / Toggle Button -->
-          <button
-            class="checkin-btn"
-            :class="{ done: isHabitDone(th) }"
-            :title="isHabitDone(th) ? 'Đã hoàn thành hôm nay (Nhấn để hủy điểm danh)' : 'Nhấn để điểm danh'"
-            @click="handleToggleCheckin(th)"
+          <!-- View Mode Toggle -->
+          <el-radio-group v-model="viewMode" size="default">
+            <el-radio-button label="CARDS">
+              <span class="mode-btn-content"><el-icon><Tickets /></el-icon> Thẻ ngày</span>
+            </el-radio-button>
+            <el-radio-button label="MATRIX">
+              <span class="mode-btn-content"><el-icon><Grid /></el-icon> Bảng tuần</span>
+            </el-radio-button>
+          </el-radio-group>
+        </div>
+      </div>
+
+      <!-- 7-Day Interactive Week Ribbon -->
+      <div class="week-ribbon-bar">
+        <button
+          v-for="day in currentWeekDates"
+          :key="day.dateStr"
+          type="button"
+          class="ribbon-day-btn"
+          :class="{ active: day.isSelected, today: day.isToday }"
+          @click="selectDate(day.dateStr)"
+        >
+          <div class="ribbon-day-top">
+            <span class="day-label">{{ day.dayShort }}</span>
+            <span v-if="day.isToday" class="today-pill">Nay</span>
+          </div>
+          <span class="day-num">{{ day.dayNum }}</span>
+          <span
+            class="day-badge"
+            :class="{
+              all: day.doneCount > 0 && day.doneCount >= day.totalCount && day.totalCount > 0,
+              partial: day.doneCount > 0 && day.doneCount < day.totalCount,
+              empty: day.doneCount === 0
+            }"
           >
-            <el-icon v-if="isHabitDone(th)"><Check /></el-icon>
-            <span v-else>+1</span>
-          </button>
+            {{ day.doneCount > 0 ? `${day.doneCount} ✓` : '-' }}
+          </span>
+        </button>
+      </div>
+
+      <!-- VIEW 1: Daily Cards View -->
+      <div v-if="viewMode === 'CARDS'">
+        <!-- Filter Tabs for Daily View -->
+        <div class="daily-filter-strip">
+          <div class="filter-pills">
+            <button
+              class="pill-btn"
+              :class="{ active: filterStatus === 'ALL' }"
+              @click="filterStatus = 'ALL'"
+            >
+              Tất cả ({{ totalDateHabitsCount }})
+            </button>
+            <button
+              class="pill-btn"
+              :class="{ active: filterStatus === 'DONE' }"
+              @click="filterStatus = 'DONE'"
+            >
+              ✓ Đã tick ({{ completedHabitsCount }})
+            </button>
+            <button
+              class="pill-btn"
+              :class="{ active: filterStatus === 'PENDING' }"
+              @click="filterStatus = 'PENDING'"
+            >
+              ⏳ Chưa tick ({{ totalDateHabitsCount - completedHabitsCount }})
+            </button>
+          </div>
+
+          <div class="date-summary-text">
+            <span>{{ formatDisplayDate(selectedDate) }}</span>
+            <span class="dot">•</span>
+            <span class="rate-highlight">{{ totalDateHabitsCount > 0 ? Math.round((completedHabitsCount / totalDateHabitsCount) * 100) : 0 }}% hoàn thành</span>
+          </div>
+        </div>
+
+        <div v-if="displayedHabits.length === 0" class="empty-today-box">
+          <div class="empty-icon">🌿</div>
+          <p class="empty-text">Không có thói quen nào phù hợp cho ngày này.</p>
+          <p class="empty-sub">Hãy chọn ngày khác trên dải tuần hoặc tạo thói quen mới.</p>
+        </div>
+
+        <div v-else class="today-grid">
+          <div
+            v-for="th in displayedHabits"
+            :key="th.id"
+            class="today-habit-card"
+            :class="{ completed: isHabitDone(th) }"
+          >
+            <div class="today-card-info">
+              <span class="habit-name" :class="{ strike: isHabitDone(th) }">
+                {{ th.name }}
+              </span>
+
+              <div class="habit-sub-row">
+                <span class="streak-badge">
+                  🔥 {{ th.currentStreak }} ngày streak
+                </span>
+                <span class="dot">•</span>
+                <span class="count-text">{{ th.todayCount }}/{{ th.targetCount }} lần</span>
+              </div>
+            </div>
+
+            <!-- 1-Click Checkin / Toggle Button -->
+            <button
+              class="checkin-btn"
+              :class="{ done: isHabitDone(th) }"
+              :title="isHabitDone(th) ? `Đã tick hoàn thành ngày ${selectedDate} (Nhấn để hủy)` : `Nhấn để tick hoàn thành cho ngày ${selectedDate}`"
+              @click="handleToggleCheckinForDate(th)"
+            >
+              <el-icon v-if="isHabitDone(th)"><Check /></el-icon>
+              <span v-else>+1</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: Weekly Matrix View -->
+      <div v-else class="weekly-matrix-box">
+        <div class="matrix-table-wrap">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th class="col-habit">Thói quen</th>
+                <th
+                  v-for="day in currentWeekDates"
+                  :key="day.dateStr"
+                  class="col-day"
+                  :class="{ active: day.isSelected, today: day.isToday }"
+                  @click="selectDate(day.dateStr)"
+                >
+                  <div class="col-day-head">
+                    <span class="day-short">{{ day.dayShort }}</span>
+                    <span class="day-num">{{ day.dayNum }}</span>
+                    <span v-if="day.isToday" class="col-today-tag">Nay</span>
+                  </div>
+                </th>
+                <th class="col-rate">Tiến độ tuần</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="habitStore.habits.length === 0">
+                <td :colspan="9" class="empty-matrix-cell">Chưa có thói quen nào.</td>
+              </tr>
+              <tr
+                v-for="h in habitStore.habits"
+                :key="h.id"
+                class="matrix-row"
+              >
+                <td class="col-habit">
+                  <div class="matrix-habit-name">
+                    <span>{{ h.name }}</span>
+                    <span v-if="!h.isActive" class="matrix-paused-tag">Tạm dừng</span>
+                  </div>
+                  <span class="matrix-habit-sub">{{ h.frequency === 'DAILY' ? 'Hàng ngày' : 'Hàng tuần' }}</span>
+                </td>
+
+                <td
+                  v-for="day in currentWeekDates"
+                  :key="day.dateStr"
+                  class="col-day-cell"
+                  :class="{ active: day.isSelected, today: day.isToday }"
+                >
+                  <button
+                    type="button"
+                    class="matrix-check-btn"
+                    :class="{ checked: isHabitDoneOnDate(h.id, day.dateStr) }"
+                    :title="isHabitDoneOnDate(h.id, day.dateStr) ? `${h.name} (${day.dayShort} ${day.dateStr}): Đã tick ✓ (Nhấn để hủy)` : `${h.name} (${day.dayShort} ${day.dateStr}): Chưa tick (Nhấn để tick)`"
+                    @click="toggleMatrixCheckin(h.id, day.dateStr)"
+                  >
+                    <el-icon v-if="isHabitDoneOnDate(h.id, day.dateStr)"><Check /></el-icon>
+                    <span v-else class="dash">-</span>
+                  </button>
+                </td>
+
+                <td class="col-rate">
+                  <span class="weekly-rate-badge" :class="{ perfect: getHabitWeeklyDoneCount(h.id) >= 7 }">
+                    {{ getHabitWeeklyDoneCount(h.id) }}/7 ngày
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -335,7 +514,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import {
   Plus,
   Compass,
@@ -344,7 +523,11 @@ import {
   Trophy,
   Check,
   Edit,
-  Delete
+  Delete,
+  ArrowLeft,
+  ArrowRight,
+  Tickets,
+  Grid
 } from '@element-plus/icons-vue'
 import { useHabitStore } from '@/stores/habit'
 import type { Habit, HabitRequest } from '@/types/habit'
@@ -452,12 +635,159 @@ function getTodayDateString(): string {
   return `${year}-${month}-${day}`
 }
 
-async function handleToggleCheckin(th: any) {
-  if (isHabitDone(th)) {
-    await habitStore.removeCheckin(th.id, getTodayDateString())
-  } else {
-    await habitStore.checkin(th.id)
+function formatDateIso(d: Date): string {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function formatDisplayDate(dateStr: string): string {
+  if (!dateStr) return ''
+  const parts = dateStr.split('-').map(Number)
+  const d = new Date(parts[0], parts[1] - 1, parts[2])
+  const dayNames = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
+  const dayOfWeek = dayNames[d.getDay()]
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const year = d.getFullYear()
+  return `${dayOfWeek}, ${day}/${month}/${year}`
+}
+
+const todayDateStr = getTodayDateString()
+const selectedDate = ref(getTodayDateString())
+const viewMode = ref<'CARDS' | 'MATRIX'>('CARDS')
+const filterStatus = ref<'ALL' | 'DONE' | 'PENDING'>('ALL')
+
+const currentWeekDates = computed(() => {
+  const parts = selectedDate.value.split('-').map(Number)
+  const base = new Date(parts[0], parts[1] - 1, parts[2])
+  const dayIdx = (base.getDay() + 6) % 7 // 0 for Mon, 6 for Sun
+  const mon = new Date(base)
+  mon.setDate(base.getDate() - dayIdx)
+
+  const dayNames = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật']
+  const dayShorts = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+
+  const result = []
+  for (let i = 0; i < 7; i++) {
+    const cur = new Date(mon)
+    cur.setDate(mon.getDate() + i)
+    const dateStr = formatDateIso(cur)
+    const doneForDay = habitStore.weekCheckins.filter(c => c.completionDate === dateStr && (c.count ?? 0) > 0).length
+    const totalActive = habitStore.habits.filter(h => h.isActive).length
+
+    result.push({
+      dateStr,
+      dayName: dayNames[i],
+      dayShort: dayShorts[i],
+      dayNum: cur.getDate(),
+      isToday: dateStr === todayDateStr,
+      isSelected: dateStr === selectedDate.value,
+      doneCount: doneForDay,
+      totalCount: totalActive
+    })
   }
+  return result
+})
+
+const activeDateHabits = computed(() => {
+  if (habitStore.dateHabits.length > 0) return habitStore.dateHabits
+  if (selectedDate.value === todayDateStr) return habitStore.todayHabits
+  return []
+})
+
+const totalDateHabitsCount = computed(() => activeDateHabits.value.length)
+
+const completedHabitsCount = computed(() => {
+  return activeDateHabits.value.filter(h => isHabitDone(h)).length
+})
+
+const displayedHabits = computed(() => {
+  if (filterStatus.value === 'DONE') {
+    return activeDateHabits.value.filter(h => isHabitDone(h))
+  }
+  if (filterStatus.value === 'PENDING') {
+    return activeDateHabits.value.filter(h => !isHabitDone(h))
+  }
+  return activeDateHabits.value
+})
+
+function isHabitDoneOnDate(habitId: string, dateStr: string): boolean {
+  return habitStore.weekCheckins.some(c => c.habitId === habitId && c.completionDate === dateStr && (c.count ?? 0) > 0)
+}
+
+function getHabitWeeklyDoneCount(habitId: string): number {
+  const weekDatesList = currentWeekDates.value.map(d => d.dateStr)
+  return habitStore.weekCheckins.filter(c => c.habitId === habitId && weekDatesList.includes(c.completionDate) && (c.count ?? 0) > 0).length
+}
+
+async function selectDate(dateStr: string) {
+  selectedDate.value = dateStr
+  await onDateChange()
+}
+
+async function goToPrevDay() {
+  const parts = selectedDate.value.split('-').map(Number)
+  const d = new Date(parts[0], parts[1] - 1, parts[2])
+  d.setDate(d.getDate() - 1)
+  selectedDate.value = formatDateIso(d)
+  await onDateChange()
+}
+
+async function goToNextDay() {
+  const parts = selectedDate.value.split('-').map(Number)
+  const d = new Date(parts[0], parts[1] - 1, parts[2])
+  d.setDate(d.getDate() + 1)
+  selectedDate.value = formatDateIso(d)
+  await onDateChange()
+}
+
+async function goToToday() {
+  selectedDate.value = todayDateStr
+  await onDateChange()
+}
+
+async function onDateChange() {
+  await Promise.all([
+    habitStore.fetchHabitsByDate(selectedDate.value),
+    refreshWeekData()
+  ])
+}
+
+async function refreshWeekData() {
+  const weekList = currentWeekDates.value
+  if (weekList.length > 0) {
+    const from = weekList[0].dateStr
+    const to = weekList[6].dateStr
+    await habitStore.fetchWeekCheckins(from, to)
+  }
+}
+
+async function handleToggleCheckinForDate(th: any) {
+  const targetDate = selectedDate.value || todayDateStr
+  if (isHabitDone(th)) {
+    await habitStore.removeCheckin(th.id, targetDate)
+  } else {
+    await habitStore.checkin(th.id, targetDate)
+  }
+  await Promise.all([
+    habitStore.fetchHabitsByDate(targetDate),
+    refreshWeekData()
+  ])
+}
+
+async function toggleMatrixCheckin(habitId: string, dateStr: string) {
+  const isDone = isHabitDoneOnDate(habitId, dateStr)
+  if (isDone) {
+    await habitStore.removeCheckin(habitId, dateStr)
+  } else {
+    await habitStore.checkin(habitId, dateStr)
+  }
+  await Promise.all([
+    habitStore.fetchHabitsByDate(selectedDate.value),
+    refreshWeekData()
+  ])
 }
 
 async function handleRemoveCheckin(habitId: string, date: string) {
@@ -466,6 +796,7 @@ async function handleRemoveCheckin(habitId: string, date: string) {
     const updated = habitStore.habits.find(h => h.id === habitId)
     if (updated) selectedHabit.value = updated
   }
+  await refreshWeekData()
 }
 
 async function handleSaveHabit() {
@@ -480,16 +811,21 @@ async function handleSaveHabit() {
         await habitStore.createHabit(formData)
       }
       isModalOpen.value = false
+      await refreshWeekData()
     } finally {
       isSaving.value = false
     }
   })
 }
 
-onMounted(() => {
-  habitStore.fetchHabits()
-  habitStore.fetchTodayHabits()
-  habitStore.fetchStatistics()
+onMounted(async () => {
+  await Promise.all([
+    habitStore.fetchHabits(),
+    habitStore.fetchTodayHabits(),
+    habitStore.fetchHabitsByDate(selectedDate.value),
+    habitStore.fetchStatistics()
+  ])
+  await refreshWeekData()
 })
 </script>
 
@@ -609,19 +945,380 @@ onMounted(() => {
     flex-direction: column;
     gap: 12px;
 
-    .section-header {
-      .section-title {
-        font-size: 1.125rem;
-        font-weight: 700;
-        color: var(--app-text);
+    .section-header-wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+
+      .section-header-left {
+        .section-title {
+          font-size: 1.125rem;
+          font-weight: 700;
+          color: var(--app-text);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+
+          .section-badge {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #10B981;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 2px 8px;
+            border-radius: 6px;
+          }
+        }
+
+        .section-subtitle {
+          font-size: 0.8125rem;
+          color: var(--app-text-muted);
+          margin-top: 4px;
+        }
+      }
+
+      .section-header-controls {
         display: flex;
         align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+
+        .date-nav-box {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .mode-btn-content {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+      }
+    }
+
+    // 7-Day Interactive Ribbon
+    .week-ribbon-bar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      background: var(--app-card-bg);
+      border: 1px solid var(--app-card-border);
+      border-radius: 12px;
+      padding: 10px;
+
+      @media (max-width: 640px) {
+        gap: 4px;
+        padding: 6px;
+      }
+
+      .ribbon-day-btn {
+        background: var(--app-bg);
+        border: 1px solid var(--app-card-border);
+        border-radius: 8px;
+        padding: 8px 4px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+
+        &:hover {
+          border-color: #10B981;
+          transform: translateY(-2px);
+        }
+
+        &.active {
+          background: rgba(16, 185, 129, 0.12);
+          border: 2px solid #10B981;
+          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+        }
+
+        &.today {
+          border-top: 2px solid #F59E0B;
+        }
+
+        .ribbon-day-top {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+
+          .day-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--app-text-muted);
+          }
+
+          .today-pill {
+            font-size: 0.625rem;
+            font-weight: 700;
+            color: #F59E0B;
+            background: rgba(245, 158, 11, 0.15);
+            padding: 1px 4px;
+            border-radius: 4px;
+          }
+        }
+
+        .day-num {
+          font-size: 1.125rem;
+          font-weight: 800;
+          color: var(--app-text);
+        }
+
+        .day-badge {
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 2px 6px;
+          border-radius: 6px;
+
+          &.all {
+            background: rgba(16, 185, 129, 0.2);
+            color: #059669;
+          }
+
+          &.partial {
+            background: rgba(245, 158, 11, 0.2);
+            color: #D97706;
+          }
+
+          &.empty {
+            color: var(--app-text-muted);
+          }
+        }
+      }
+    }
+
+    // Daily View Filter Strip
+    .daily-filter-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 4px 0;
+
+      .filter-pills {
+        display: flex;
         gap: 8px;
 
-        .section-badge {
-          font-size: 0.75rem;
-          font-weight: 400;
+        .pill-btn {
+          background: var(--app-card-bg);
+          border: 1px solid var(--app-card-border);
+          border-radius: 20px;
+          padding: 5px 12px;
+          font-size: 0.8125rem;
+          font-weight: 600;
           color: var(--app-text-muted);
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &:hover {
+            color: var(--app-text);
+            border-color: #10B981;
+          }
+
+          &.active {
+            background: #10B981;
+            border-color: #10B981;
+            color: #FFFFFF;
+          }
+        }
+      }
+
+      .date-summary-text {
+        font-size: 0.8125rem;
+        color: var(--app-text-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .rate-highlight {
+          font-weight: 700;
+          color: #10B981;
+        }
+
+        .dot { color: var(--app-card-border); }
+      }
+    }
+
+    // Weekly Matrix View
+    .weekly-matrix-box {
+      background: var(--app-card-bg);
+      border: 1px solid var(--app-card-border);
+      border-radius: 12px;
+      overflow: hidden;
+
+      .matrix-table-wrap {
+        overflow-x: auto;
+      }
+
+      .matrix-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+
+        th, td {
+          padding: 12px 14px;
+          border-bottom: 1px solid var(--app-card-border);
+        }
+
+        th {
+          background: var(--app-bg);
+          font-size: 0.8125rem;
+          font-weight: 700;
+          color: var(--app-text-muted);
+          white-space: nowrap;
+
+          &.col-day {
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+
+            &:hover {
+              background: rgba(16, 185, 129, 0.08);
+            }
+
+            &.active {
+              background: rgba(16, 185, 129, 0.15);
+              color: #10B981;
+            }
+
+            &.today {
+              border-bottom: 2px solid #F59E0B;
+            }
+
+            .col-day-head {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 2px;
+
+              .day-short { font-size: 0.6875rem; }
+              .day-num { font-size: 0.9375rem; font-weight: 800; color: var(--app-text); }
+              .col-today-tag {
+                font-size: 0.5625rem;
+                background: #F59E0B;
+                color: #FFFFFF;
+                padding: 1px 4px;
+                border-radius: 3px;
+              }
+            }
+          }
+
+          &.col-rate {
+            text-align: center;
+          }
+        }
+
+        tbody {
+          .matrix-row {
+            transition: background 0.15s;
+
+            &:hover {
+              background: rgba(0, 0, 0, 0.02);
+            }
+
+            .col-habit {
+              min-width: 180px;
+
+              .matrix-habit-name {
+                font-weight: 600;
+                font-size: 0.9375rem;
+                color: var(--app-text);
+                display: flex;
+                align-items: center;
+                gap: 6px;
+
+                .matrix-paused-tag {
+                  font-size: 0.625rem;
+                  background: var(--app-card-border);
+                  color: var(--app-text-muted);
+                  padding: 1px 4px;
+                  border-radius: 3px;
+                }
+              }
+
+              .matrix-habit-sub {
+                font-size: 0.75rem;
+                color: var(--app-text-muted);
+              }
+            }
+
+            .col-day-cell {
+              text-align: center;
+
+              &.active {
+                background: rgba(16, 185, 129, 0.04);
+              }
+
+              .matrix-check-btn {
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                border: 1px dashed var(--app-card-border);
+                background: var(--app-bg);
+                color: var(--app-text-muted);
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                transition: all 0.2s;
+
+                &:hover {
+                  border-color: #10B981;
+                  color: #10B981;
+                  transform: scale(1.1);
+                }
+
+                &.checked {
+                  background: #10B981;
+                  border: 1px solid #10B981;
+                  color: #FFFFFF;
+
+                  &:hover {
+                    background: #059669;
+                    border-color: #059669;
+                  }
+                }
+
+                .dash {
+                  font-size: 1rem;
+                  opacity: 0.4;
+                }
+              }
+            }
+
+            .col-rate {
+              text-align: center;
+
+              .weekly-rate-badge {
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: var(--app-text-muted);
+                background: var(--app-bg);
+                border: 1px solid var(--app-card-border);
+                padding: 3px 8px;
+                border-radius: 6px;
+
+                &.perfect {
+                  color: #059669;
+                  background: rgba(16, 185, 129, 0.15);
+                  border-color: rgba(16, 185, 129, 0.3);
+                }
+              }
+            }
+          }
+
+          .empty-matrix-cell {
+            text-align: center;
+            padding: 32px;
+            color: var(--app-text-muted);
+          }
         }
       }
     }

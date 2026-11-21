@@ -19,6 +19,16 @@ export const habitApi = {
     return res.data.data
   },
 
+  getHabitsByDate: async (date?: string): Promise<TodayHabit[]> => {
+    const res = await apiClient.get<ApiResponse<TodayHabit[]>>('/habits/today', { params: { date } })
+    return res.data.data
+  },
+
+  getCheckins: async (params?: { from?: string; to?: string }): Promise<import('@/types/habit').CheckinResponse[]> => {
+    const res = await apiClient.get<ApiResponse<import('@/types/habit').CheckinResponse[]>>('/habits/check-ins', { params })
+    return res.data.data
+  },
+
   getStatistics: async (): Promise<HabitStatistics> => {
     const res = await apiClient.get<ApiResponse<HabitStatistics>>('/habits/statistics')
     return res.data.data
