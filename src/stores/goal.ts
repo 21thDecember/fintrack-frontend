@@ -119,6 +119,20 @@ export const useGoalStore = defineStore('goal', () => {
     }
   }
 
+  async function updateProgress(goalId: string, currentValue: number, status?: GoalStatus): Promise<void> {
+    try {
+      await goalApi.updateProgress(goalId, { currentValue, status })
+      ElMessage.success('Cập nhật tiến trình thành công! 🎯')
+      if (currentGoal.value?.id === goalId) {
+        await fetchGoalById(goalId)
+      }
+      await Promise.all([fetchGoals(), fetchStatistics()])
+    } catch (err: any) {
+      ElMessage.error(err.response?.data?.message || 'Không thể cập nhật tiến trình')
+      throw err
+    }
+  }
+
   return {
     goals,
     currentGoal,
@@ -135,6 +149,7 @@ export const useGoalStore = defineStore('goal', () => {
     deleteGoal,
     addMilestone,
     updateMilestone,
-    deleteMilestone
+    deleteMilestone,
+    updateProgress
   }
 })

@@ -2,6 +2,7 @@ import apiClient from './client'
 import type {
   Goal,
   GoalRequest,
+  GoalProgressUpdateRequest,
   Milestone,
   MilestoneRequest,
   GoalProgress,
@@ -53,6 +54,11 @@ export const goalApi = {
 
   getProgress: async (id: string): Promise<GoalProgress> => {
     const res = await apiClient.get<ApiResponse<GoalProgress>>(`/goals/${id}/progress`)
+    return res.data.data
+  },
+
+  updateProgress: async (id: string, data: GoalProgressUpdateRequest): Promise<Goal> => {
+    const res = await apiClient.patch<ApiResponse<Goal>>(`/goals/${id}/progress`, data)
     return res.data.data
   },
 

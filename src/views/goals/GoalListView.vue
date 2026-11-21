@@ -122,6 +122,10 @@
                 {{ getCategoryLabel(goal.category) }}
               </span>
 
+              <span class="type-tag" :class="getTypeTagClass(goal.goalType)">
+                {{ getTypeLabel(goal.goalType) }}
+              </span>
+
               <span class="status-tag" :class="getStatusTagClass(goal.status)">
                 {{ getStatusLabel(goal.status) }}
               </span>
@@ -140,7 +144,7 @@
             <!-- Progress Bar -->
             <div class="progress-wrap">
               <div class="progress-top">
-                <span class="progress-label">Tiến độ cột mốc</span>
+                <span class="progress-label">{{ getProgressTypeLabel(goal.goalType) }}</span>
                 <span class="progress-pct">{{ goal.progressPercentage }}%</span>
               </div>
               <el-progress
@@ -150,10 +154,61 @@
                 :color="getProgressColor(goal.progressPercentage)"
               />
               <div class="progress-meta">
-                <span>{{ goal.completedMilestones }}/{{ goal.totalMilestones }} cột mốc</span>
+                <span v-if="goal.goalType === 'NUMERIC'" class="meta-highlight">
+                  🎯 {{ goal.currentValue || 0 }} / {{ goal.targetValue || 0 }} {{ goal.unit || '' }}
+                </span>
+                <span v-else-if="goal.goalType === 'PERCENTAGE'" class="meta-highlight">
+                  🎚️ {{ goal.currentValue || 0 }}% hoàn thành
+                </span>
+                <span v-else-if="goal.goalType === 'TASK_BASED'" class="meta-highlight">
+                  📋 Theo công việc liên kết
+                </span>
+                <span v-else class="meta-highlight">
+                  🏁 {{ goal.completedMilestones }}/{{ goal.totalMilestones }} cột mốc
+                </span>
+
                 <span v-if="goal.targetDate" :class="{ 'meta-overdue': goal.isOverdue }">
                   Hạn: {{ goal.targetDate }}
                 </span>
+              </div>
+
+              <!-- Quick Progress Adjustment Row on Card -->
+              <div class="card-quick-adjust-bar">
+                <template v-if="goal.goalType === 'NUMERIC'">
+                  <div class="quick-step-buttons">
+                    <span class="adjust-label">Cập nhật:</span>
+                    <button type="button" class="mini-step-btn" title="Giảm 1" @click.stop="quickAdjustNumeric(goal, -1)">-1</button>
+                    <button type="button" class="mini-step-btn" title="Tăng 1" @click.stop="quickAdjustNumeric(goal, 1)">+1</button>
+                    <button type="button" class="mini-step-btn" title="Tăng 5" @click.stop="quickAdjustNumeric(goal, 5)">+5</button>
+                  </div>
+                  <button type="button" class="adjust-open-pill" @click.stop="openProgressModal(goal)">
+                    ⚡ Điều chỉnh
+                  </button>
+                </template>
+
+                <template v-else-if="goal.goalType === 'PERCENTAGE'">
+                  <div class="quick-step-buttons">
+                    <span class="adjust-label">Mốc %:</span>
+                    <button type="button" class="mini-step-btn" :class="{ active: (goal.currentValue || 0) === 25 }" @click.stop="quickAdjustPercentage(goal, 25)">25%</button>
+                    <button type="button" class="mini-step-btn" :class="{ active: (goal.currentValue || 0) === 50 }" @click.stop="quickAdjustPercentage(goal, 50)">50%</button>
+                    <button type="button" class="mini-step-btn" :class="{ active: (goal.currentValue || 0) === 100 }" @click.stop="quickAdjustPercentage(goal, 100)">100%</button>
+                  </div>
+                  <button type="button" class="adjust-open-pill" @click.stop="openProgressModal(goal)">
+                    ⚡ Kéo %
+                  </button>
+                </template>
+
+                <template v-else-if="goal.goalType === 'MILESTONE'">
+                  <button type="button" class="adjust-open-pill full" @click.stop="openProgressModal(goal)">
+                    🏁 Xem & Tick cột mốc ({{ goal.completedMilestones }}/{{ goal.totalMilestones }})
+                  </button>
+                </template>
+
+                <template v-else>
+                  <router-link :to="'/goals/' + goal.id" class="adjust-open-pill full">
+                    📋 Quản lý công việc liên kết
+                  </router-link>
+                </template>
               </div>
             </div>
           </div>
@@ -161,11 +216,15 @@
           <!-- Footer Actions -->
           <div class="card-footer-row">
             <router-link :to="'/goals/' + goal.id" class="detail-link">
-              <span>Xem chi tiết & Cột mốc</span>
+              <span>Xem chi tiết</span>
               <el-icon><ArrowRight /></el-icon>
             </router-link>
 
             <div class="action-buttons">
+              <el-button circle size="small" text title="Điều chỉnh tiến trình" @click="openProgressModal(goal)">
+                <el-icon><CircleCheckFilled /></el-icon>
+              </el-button>
+
               <el-button circle size="small" text title="Chỉnh sửa" @click="openEditModal(goal)">
                 <el-icon><Edit /></el-icon>
               </el-button>
@@ -189,21 +248,260 @@
       </div>
     </div>
 
+    <!-- Quick Progress Adjustment Dialog -->
+    <el-dialog
+      v-model="isProgressModalOpen"
+      title="⚡ Điều chỉnh Tiến trình Mục tiêu"
+      width="480px"
+      destroy-on-close
+    >
+      <div v-if="adjustingGoal" class="adjust-modal-content">
+        <div class="adjust-goal-header">
+          <div class="adjust-title-box">
+            <h3 class="adjust-goal-title">{{ adjustingGoal.title }}</h3>
+            <span class="type-tag" :class="getTypeTagClass(adjustingGoal.goalType)">
+              {{ getTypeLabel(adjustingGoal.goalType) }}
+            </span>
+          </div>
+          <p v-if="adjustingGoal.description" class="adjust-goal-desc">{{ adjustingGoal.description }}</p>
+        </div>
+
+        <!-- Live Progress Preview -->
+        <div class="adjust-preview-box">
+          <div class="preview-top">
+            <span class="preview-label">Tiến độ ước tính</span>
+            <span class="preview-pct">{{ previewProgressPercentage }}%</span>
+          </div>
+          <el-progress
+            :percentage="previewProgressPercentage"
+            :show-text="false"
+            :stroke-width="10"
+            :color="getProgressColor(previewProgressPercentage)"
+          />
+        </div>
+
+        <!-- NUMERIC Progress Controls -->
+        <div v-if="adjustingGoal.goalType === 'NUMERIC'" class="adjust-controls-section">
+          <div class="numeric-adjust-card">
+            <div class="numeric-main-row">
+              <span class="num-label">Giá trị hiện tại:</span>
+              <div class="number-stepper">
+                <el-button size="default" @click="adjustValue = Math.max(0, adjustValue - 1)">-</el-button>
+                <el-input-number
+                  v-model="adjustValue"
+                  :min="0"
+                  :step="1"
+                  controls-position="right"
+                  style="width: 140px"
+                />
+                <el-button size="default" @click="adjustValue = adjustValue + 1">+</el-button>
+              </div>
+              <span class="unit-tag">{{ adjustingGoal.unit || 'đơn vị' }}</span>
+            </div>
+
+            <div class="target-compare-text">
+              Mục tiêu: <strong>{{ adjustingGoal.targetValue || 0 }} {{ adjustingGoal.unit || '' }}</strong>
+            </div>
+
+            <div class="quick-add-chips">
+              <span class="chips-title">Cộng nhanh:</span>
+              <button type="button" class="quick-chip" @click="adjustValue = adjustValue + 1">+1</button>
+              <button type="button" class="quick-chip" @click="adjustValue = adjustValue + 5">+5</button>
+              <button type="button" class="quick-chip" @click="adjustValue = adjustValue + 10">+10</button>
+              <button type="button" class="quick-chip" @click="adjustValue = adjustValue + 50">+50</button>
+              <button type="button" class="quick-chip reset" @click="adjustValue = 0">Về 0</button>
+              <button
+                v-if="adjustingGoal.targetValue"
+                type="button"
+                class="quick-chip max"
+                @click="adjustValue = adjustingGoal.targetValue"
+              >
+                Đạt 100%
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PERCENTAGE Progress Controls -->
+        <div v-else-if="adjustingGoal.goalType === 'PERCENTAGE'" class="adjust-controls-section">
+          <div class="percentage-adjust-card">
+            <div class="pct-slider-wrap">
+              <el-slider
+                v-model="adjustValue"
+                :min="0"
+                :max="100"
+                :step="1"
+                :marks="{ 0: '0%', 25: '25%', 50: '50%', 75: '75%', 100: '100%' }"
+              />
+            </div>
+
+            <div class="quick-add-chips">
+              <span class="chips-title">Mốc nhanh:</span>
+              <button type="button" class="quick-chip" @click="adjustValue = 0">0%</button>
+              <button type="button" class="quick-chip" @click="adjustValue = 25">25%</button>
+              <button type="button" class="quick-chip" @click="adjustValue = 50">50%</button>
+              <button type="button" class="quick-chip" @click="adjustValue = 75">75%</button>
+              <button type="button" class="quick-chip max" @click="adjustValue = 100">100% 🎉</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MILESTONE Progress Controls -->
+        <div v-else-if="adjustingGoal.goalType === 'MILESTONE'" class="adjust-controls-section">
+          <div class="milestone-adjust-list">
+            <div v-if="!adjustingGoal.milestones || adjustingGoal.milestones.length === 0" class="empty-m-note">
+              Mục tiêu này chưa có cột mốc. Bạn có thể mở chi tiết để thêm cột mốc!
+            </div>
+            <div
+              v-for="m in adjustingGoal.milestones"
+              :key="m.id"
+              class="modal-milestone-row"
+              :class="{ done: m.status === 'COMPLETED' }"
+              @click="toggleModalMilestone(m)"
+            >
+              <div class="m-checkbox" :class="{ checked: m.status === 'COMPLETED' }">
+                <span v-if="m.status === 'COMPLETED'">✓</span>
+              </div>
+              <span class="m-title" :class="{ strike: m.status === 'COMPLETED' }">{{ m.title }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status selector in modal -->
+        <div class="adjust-status-row">
+          <label class="status-label">Trạng thái mục tiêu:</label>
+          <el-select v-model="adjustStatus" size="default" style="width: 170px">
+            <el-option label="Chưa bắt đầu" value="NOT_STARTED" />
+            <el-option label="Đang thực hiện" value="IN_PROGRESS" />
+            <el-option label="Đã hoàn thành" value="COMPLETED" />
+            <el-option label="Đã hủy" value="CANCELLED" />
+          </el-select>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="isProgressModalOpen = false">Đóng</el-button>
+          <el-button type="primary" :loading="isUpdatingProgress" @click="handleSaveProgressModal">
+            Lưu tiến trình
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
     <!-- Create / Edit Goal Modal -->
     <el-dialog
       v-model="isModalOpen"
       :title="isEditMode ? 'Chỉnh sửa Mục tiêu' : 'Tạo Mục tiêu mới'"
-      width="540px"
+      width="580px"
       destroy-on-close
     >
       <el-form ref="formRef" :model="formData" :rules="formRules" label-position="top">
         <el-form-item label="Tên mục tiêu" prop="title">
-          <el-input v-model="formData.title" placeholder="Ví dụ: Đạt IELTS 7.0, Tiết kiệm 100 triệu, Nâng cao kỹ năng Spring Boot..." />
+          <el-input v-model="formData.title" placeholder="Ví dụ: Đạt IELTS 7.0, Tiết kiệm 100 triệu, Chạy bộ 100 km..." />
         </el-form-item>
 
         <el-form-item label="Mô tả mục tiêu" prop="description">
-          <el-input v-model="formData.description" type="textarea" :rows="3" placeholder="Mục đích, ý nghĩa và tiêu chí hoàn thành..." />
+          <el-input v-model="formData.description" type="textarea" :rows="2" placeholder="Mục đích, ý nghĩa và tiêu chí hoàn thành..." />
         </el-form-item>
+
+        <!-- Goal Type Selector (Loại mục tiêu & Tiến trình) -->
+        <el-form-item label="Loại mục tiêu & Cách tính tiến trình" prop="goalType">
+          <div class="goal-type-grid">
+            <div
+              class="goal-type-card"
+              :class="{ active: formData.goalType === 'MILESTONE' }"
+              @click="formData.goalType = 'MILESTONE'"
+            >
+              <div class="type-icon">🏁</div>
+              <div class="type-text">
+                <div class="type-title">Cột mốc</div>
+                <div class="type-desc">Checklist các bước mốc quan trọng</div>
+              </div>
+            </div>
+
+            <div
+              class="goal-type-card"
+              :class="{ active: formData.goalType === 'NUMERIC' }"
+              @click="formData.goalType = 'NUMERIC'"
+            >
+              <div class="type-icon">📊</div>
+              <div class="type-text">
+                <div class="type-title">Con số / Định lượng</div>
+                <div class="type-desc">Đo lường bằng số (tiền, km, sách, kg...)</div>
+              </div>
+            </div>
+
+            <div
+              class="goal-type-card"
+              :class="{ active: formData.goalType === 'PERCENTAGE' }"
+              @click="formData.goalType = 'PERCENTAGE'"
+            >
+              <div class="type-icon">🎚️</div>
+              <div class="type-text">
+                <div class="type-title">Phần trăm (0-100%)</div>
+                <div class="type-desc">Tự điều chỉnh mức độ tiến triển</div>
+              </div>
+            </div>
+
+            <div
+              class="goal-type-card"
+              :class="{ active: formData.goalType === 'TASK_BASED' }"
+              @click="formData.goalType = 'TASK_BASED'"
+            >
+              <div class="type-icon">📋</div>
+              <div class="type-text">
+                <div class="type-title">Công việc liên kết</div>
+                <div class="type-desc">Tự tính theo Tasks đã hoàn thành</div>
+              </div>
+            </div>
+          </div>
+        </el-form-item>
+
+        <!-- Conditional fields for NUMERIC type -->
+        <div v-if="formData.goalType === 'NUMERIC'" class="form-row-3 numeric-setup-box">
+          <el-form-item label="Mục tiêu cần đạt" prop="targetValue">
+            <el-input-number
+              v-model="formData.targetValue"
+              :min="1"
+              :step="1"
+              style="width: 100%"
+              placeholder="VD: 100"
+            />
+          </el-form-item>
+
+          <el-form-item label="Hiện tại đã đạt" prop="currentValue">
+            <el-input-number
+              v-model="formData.currentValue"
+              :min="0"
+              :step="1"
+              style="width: 100%"
+              placeholder="VD: 0"
+            />
+          </el-form-item>
+
+          <el-form-item label="Đơn vị tính" prop="unit">
+            <el-input
+              v-model="formData.unit"
+              placeholder="km, quyển, VNĐ, kg..."
+            />
+          </el-form-item>
+        </div>
+
+        <!-- Conditional fields for PERCENTAGE type -->
+        <div v-else-if="formData.goalType === 'PERCENTAGE'" class="percentage-setup-box">
+          <el-form-item label="Tiến độ hiện tại (%)">
+            <div class="slider-with-input">
+              <el-slider
+                v-model="formData.currentValue"
+                :min="0"
+                :max="100"
+                :step="1"
+                show-input
+              />
+            </div>
+          </el-form-item>
+        </div>
 
         <div class="form-row-2">
           <el-form-item label="Lĩnh vực / Nhóm" prop="category">
@@ -275,7 +573,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import {
   Plus,
   Trophy,
@@ -287,7 +585,7 @@ import {
   Delete
 } from '@element-plus/icons-vue'
 import { useGoalStore } from '@/stores/goal'
-import type { Goal, GoalRequest, GoalCategory, GoalStatus } from '@/types/goal'
+import type { Goal, GoalRequest, GoalCategory, GoalStatus, GoalType, Milestone } from '@/types/goal'
 import type { FormInstance, FormRules } from 'element-plus'
 
 const goalStore = useGoalStore()
@@ -314,6 +612,10 @@ const formData = reactive<GoalRequest>({
   category: 'PERSONAL',
   priority: 'MEDIUM',
   status: 'NOT_STARTED',
+  goalType: 'MILESTONE',
+  targetValue: 100,
+  currentValue: 0,
+  unit: '',
   startDate: new Date().toISOString().substring(0, 10),
   targetDate: undefined
 })
@@ -321,6 +623,33 @@ const formData = reactive<GoalRequest>({
 const formRules: FormRules = {
   title: [{ required: true, message: 'Vui lòng nhập tiêu đề mục tiêu', trigger: 'blur' }]
 }
+
+// Quick Progress Adjuster Modal State
+const isProgressModalOpen = ref(false)
+const adjustingGoal = ref<Goal | null>(null)
+const adjustValue = ref<number>(0)
+const adjustStatus = ref<GoalStatus>('IN_PROGRESS')
+const isUpdatingProgress = ref(false)
+
+const previewProgressPercentage = computed(() => {
+  if (!adjustingGoal.value) return 0
+  const type = adjustingGoal.value.goalType || 'MILESTONE'
+  if (type === 'NUMERIC') {
+    const target = adjustingGoal.value.targetValue || 0
+    if (target <= 0) return 0
+    return Math.min(100, Math.max(0, Math.round(((adjustValue.value || 0) / target) * 1000) / 10))
+  }
+  if (type === 'PERCENTAGE') {
+    return Math.min(100, Math.max(0, Math.round((adjustValue.value || 0) * 10) / 10))
+  }
+  if (type === 'MILESTONE') {
+    const ms = adjustingGoal.value.milestones || []
+    if (ms.length === 0) return 0
+    const comp = ms.filter(m => m.status === 'COMPLETED').length
+    return Math.round((comp / ms.length) * 1000) / 10
+  }
+  return adjustingGoal.value.progressPercentage || 0
+})
 
 function filterByCategory(cat: GoalCategory | 'ALL') {
   goalStore.selectedCategory = cat
@@ -349,6 +678,36 @@ function getCategoryTagClass(category: GoalCategory) {
   }
 }
 
+function getTypeLabel(type?: GoalType) {
+  switch (type) {
+    case 'NUMERIC': return '📊 Định lượng'
+    case 'PERCENTAGE': return '🎚️ Phần trăm'
+    case 'TASK_BASED': return '📋 Công việc'
+    case 'MILESTONE':
+    default: return '🏁 Cột mốc'
+  }
+}
+
+function getTypeTagClass(type?: GoalType) {
+  switch (type) {
+    case 'NUMERIC': return 'type-numeric'
+    case 'PERCENTAGE': return 'type-percentage'
+    case 'TASK_BASED': return 'type-task'
+    case 'MILESTONE':
+    default: return 'type-milestone'
+  }
+}
+
+function getProgressTypeLabel(type?: GoalType) {
+  switch (type) {
+    case 'NUMERIC': return 'Tiến độ định lượng'
+    case 'PERCENTAGE': return 'Tiến độ hoàn thành'
+    case 'TASK_BASED': return 'Tiến độ công việc'
+    case 'MILESTONE':
+    default: return 'Tiến độ cột mốc'
+  }
+}
+
 function getStatusLabel(status: GoalStatus) {
   switch (status) {
     case 'NOT_STARTED': return 'Chưa bắt đầu'
@@ -373,6 +732,49 @@ function getProgressColor(pct: number) {
   return '#F59E0B'
 }
 
+async function quickAdjustNumeric(goal: Goal, delta: number) {
+  const nextVal = Math.max(0, (goal.currentValue || 0) + delta)
+  await goalStore.updateProgress(goal.id, nextVal)
+}
+
+async function quickAdjustPercentage(goal: Goal, targetPct: number) {
+  await goalStore.updateProgress(goal.id, targetPct)
+}
+
+function openProgressModal(goal: Goal) {
+  adjustingGoal.value = goal
+  adjustValue.value = goal.currentValue || 0
+  adjustStatus.value = goal.status
+  isProgressModalOpen.value = true
+}
+
+async function handleSaveProgressModal() {
+  if (!adjustingGoal.value) return
+  isUpdatingProgress.value = true
+  try {
+    await goalStore.updateProgress(adjustingGoal.value.id, adjustValue.value, adjustStatus.value)
+    isProgressModalOpen.value = false
+  } finally {
+    isUpdatingProgress.value = false
+  }
+}
+
+async function toggleModalMilestone(m: Milestone) {
+  if (!adjustingGoal.value) return
+  const nextStatus = m.status === 'COMPLETED' ? 'TODO' : 'COMPLETED'
+  await goalStore.updateMilestone(adjustingGoal.value.id, m.id, {
+    title: m.title,
+    description: m.description,
+    dueDate: m.dueDate,
+    status: nextStatus,
+    displayOrder: m.displayOrder
+  })
+  const updated = goalStore.goals.find(g => g.id === adjustingGoal.value?.id)
+  if (updated) {
+    adjustingGoal.value = updated
+  }
+}
+
 function openCreateModal() {
   isEditMode.value = false
   currentGoalId.value = null
@@ -382,6 +784,10 @@ function openCreateModal() {
     category: 'PERSONAL',
     priority: 'MEDIUM',
     status: 'NOT_STARTED',
+    goalType: 'MILESTONE',
+    targetValue: 100,
+    currentValue: 0,
+    unit: '',
     startDate: new Date().toISOString().substring(0, 10),
     targetDate: undefined
   })
@@ -397,6 +803,10 @@ function openEditModal(goal: Goal) {
     category: goal.category,
     priority: goal.priority,
     status: goal.status,
+    goalType: goal.goalType || 'MILESTONE',
+    targetValue: goal.targetValue || 0,
+    currentValue: goal.currentValue || 0,
+    unit: goal.unit || '',
     startDate: goal.startDate,
     targetDate: goal.targetDate
   })
@@ -704,6 +1114,18 @@ onMounted(() => {
               &.tag-other { background: rgba(107, 114, 128, 0.12); color: #4B5563; }
             }
 
+            .type-tag {
+              font-size: 0.6875rem;
+              font-weight: 600;
+              padding: 2px 7px;
+              border-radius: 6px;
+
+              &.type-milestone { background: rgba(99, 102, 241, 0.12); color: #6366F1; }
+              &.type-numeric { background: rgba(16, 185, 129, 0.12); color: #059669; }
+              &.type-percentage { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+              &.type-task { background: rgba(14, 165, 233, 0.12); color: #0284C7; }
+            }
+
             .status-tag {
               font-size: 0.6875rem;
               font-weight: 600;
@@ -777,9 +1199,89 @@ onMounted(() => {
               font-size: 0.6875rem;
               color: var(--app-text-muted);
 
+              .meta-highlight {
+                font-weight: 600;
+                color: var(--app-text);
+              }
+
               .meta-overdue {
                 color: #EF4444;
                 font-weight: 700;
+              }
+            }
+
+            /* Quick Progress Adjustment Row on Card */
+            .card-quick-adjust-bar {
+              margin-top: 4px;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 6px;
+              padding: 5px 8px;
+              border-radius: 8px;
+              background: rgba(99, 102, 241, 0.05);
+              border: 1px dashed rgba(99, 102, 241, 0.2);
+
+              .quick-step-buttons {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+
+                .adjust-label {
+                  font-size: 0.6875rem;
+                  color: var(--app-text-muted);
+                  font-weight: 500;
+                  margin-right: 2px;
+                }
+
+                .mini-step-btn {
+                  padding: 2px 7px;
+                  font-size: 0.6875rem;
+                  font-weight: 700;
+                  border-radius: 6px;
+                  background: var(--app-card-bg);
+                  border: 1px solid var(--app-card-border);
+                  color: var(--app-text);
+                  cursor: pointer;
+                  transition: all 0.15s;
+
+                  &:hover {
+                    background: #6366F1;
+                    border-color: #6366F1;
+                    color: #fff;
+                  }
+
+                  &.active {
+                    background: #6366F1;
+                    border-color: #6366F1;
+                    color: #fff;
+                  }
+                }
+              }
+
+              .adjust-open-pill {
+                padding: 3px 8px;
+                font-size: 0.6875rem;
+                font-weight: 600;
+                border-radius: 6px;
+                background: rgba(99, 102, 241, 0.1);
+                color: #6366F1;
+                border: none;
+                cursor: pointer;
+                text-decoration: none;
+                white-space: nowrap;
+                transition: all 0.15s;
+
+                &:hover {
+                  background: #6366F1;
+                  color: #fff;
+                }
+
+                &.full {
+                  width: 100%;
+                  text-align: center;
+                  padding: 4px 8px;
+                }
               }
             }
           }
@@ -818,6 +1320,66 @@ onMounted(() => {
     }
   }
 
+  /* Form Layouts & Goal Type Cards */
+  .goal-type-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    width: 100%;
+
+    @media (max-width: 540px) {
+      grid-template-columns: 1fr;
+    }
+
+    .goal-type-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1.5px solid var(--app-card-border);
+      background: var(--app-card-bg);
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        border-color: rgba(99, 102, 241, 0.5);
+        background: rgba(99, 102, 241, 0.02);
+      }
+
+      &.active {
+        border-color: #6366F1;
+        background: rgba(99, 102, 241, 0.08);
+
+        .type-title {
+          color: #6366F1;
+          font-weight: 700;
+        }
+      }
+
+      .type-icon {
+        font-size: 1.25rem;
+        line-height: 1;
+        margin-top: 2px;
+      }
+
+      .type-text {
+        .type-title {
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: var(--app-text);
+        }
+
+        .type-desc {
+          font-size: 0.6875rem;
+          color: var(--app-text-muted);
+          margin-top: 2px;
+          line-height: 1.3;
+        }
+      }
+    }
+  }
+
   .form-row-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -825,6 +1387,250 @@ onMounted(() => {
 
     @media (max-width: 640px) {
       grid-template-columns: 1fr;
+    }
+  }
+
+  .form-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .numeric-setup-box,
+  .percentage-setup-box {
+    background: rgba(99, 102, 241, 0.04);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  .slider-with-input {
+    padding: 0 10px;
+  }
+
+  /* Quick Progress Modal Content */
+  .adjust-modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .adjust-goal-header {
+      .adjust-title-box {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+
+        .adjust-goal-title {
+          font-size: 1.0625rem;
+          font-weight: 700;
+          color: var(--app-text);
+        }
+      }
+
+      .adjust-goal-desc {
+        font-size: 0.75rem;
+        color: var(--app-text-muted);
+        margin-top: 4px;
+      }
+    }
+
+    .adjust-preview-box {
+      background: var(--app-card-bg);
+      border: 1px solid var(--app-card-border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      .preview-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8125rem;
+
+        .preview-label {
+          color: var(--app-text-muted);
+          font-weight: 500;
+        }
+
+        .preview-pct {
+          font-weight: 800;
+          font-size: 1rem;
+          color: #6366F1;
+        }
+      }
+    }
+
+    .numeric-adjust-card,
+    .percentage-adjust-card {
+      background: var(--app-card-bg);
+      border: 1px solid var(--app-card-border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .numeric-main-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+
+        .num-label {
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: var(--app-text);
+        }
+
+        .number-stepper {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .unit-tag {
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: #6366F1;
+        }
+      }
+
+      .target-compare-text {
+        font-size: 0.75rem;
+        color: var(--app-text-muted);
+      }
+
+      .pct-slider-wrap {
+        padding: 0 10px 10px;
+      }
+    }
+
+    .quick-add-chips {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+
+      .chips-title {
+        font-size: 0.75rem;
+        color: var(--app-text-muted);
+        font-weight: 500;
+      }
+
+      .quick-chip {
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--app-card-border);
+        background: var(--app-card-bg);
+        color: var(--app-text);
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+
+        &:hover {
+          border-color: #6366F1;
+          color: #6366F1;
+        }
+
+        &.reset {
+          background: rgba(239, 68, 68, 0.08);
+          color: #EF4444;
+          border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        &.max {
+          background: rgba(16, 185, 129, 0.08);
+          color: #10B981;
+          border-color: rgba(16, 185, 129, 0.2);
+        }
+      }
+    }
+
+    .milestone-adjust-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+
+      .empty-m-note {
+        font-size: 0.75rem;
+        color: var(--app-text-muted);
+        text-align: center;
+        padding: 12px;
+      }
+
+      .modal-milestone-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: var(--app-card-bg);
+        border: 1px solid var(--app-card-border);
+        cursor: pointer;
+        transition: all 0.15s;
+
+        &:hover {
+          border-color: #6366F1;
+        }
+
+        &.done {
+          background: rgba(16, 185, 129, 0.04);
+          border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .m-checkbox {
+          width: 18px;
+          height: 18px;
+          border-radius: 4px;
+          border: 1.5px solid var(--app-card-border);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.6875rem;
+          color: #fff;
+
+          &.checked {
+            background: #10B981;
+            border-color: #10B981;
+          }
+        }
+
+        .m-title {
+          font-size: 0.8125rem;
+          color: var(--app-text);
+
+          &.strike {
+            text-decoration: line-through;
+            color: var(--app-text-muted);
+          }
+        }
+      }
+    }
+
+    .adjust-status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 8px;
+      border-top: 1px solid var(--app-card-border);
+
+      .status-label {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--app-text);
+      }
     }
   }
 

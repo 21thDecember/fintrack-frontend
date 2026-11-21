@@ -7,6 +7,8 @@ export type GoalPriority = 'LOW' | 'MEDIUM' | 'HIGH'
 
 export type GoalStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
 
+export type GoalType = 'MILESTONE' | 'NUMERIC' | 'PERCENTAGE' | 'TASK_BASED'
+
 export type MilestoneStatus = 'TODO' | 'IN_PROGRESS' | 'COMPLETED'
 
 export interface Milestone {
@@ -37,6 +39,10 @@ export interface Goal {
   category: GoalCategory
   priority: GoalPriority
   status: GoalStatus
+  goalType?: GoalType
+  targetValue?: number
+  currentValue?: number
+  unit?: string
   startDate?: string | null
   targetDate?: string | null
   completedAt?: string | null
@@ -59,12 +65,25 @@ export interface GoalRequest {
   category?: GoalCategory
   priority?: GoalPriority
   status?: GoalStatus
+  goalType?: GoalType
+  targetValue?: number
+  currentValue?: number
+  unit?: string
   startDate?: string | null
   targetDate?: string | null
 }
 
+export interface GoalProgressUpdateRequest {
+  currentValue: number
+  status?: GoalStatus
+}
+
 export interface GoalProgress {
   goalId: string
+  goalType?: GoalType
+  targetValue?: number
+  currentValue?: number
+  unit?: string
   totalMilestones: number
   completedMilestones: number
   progressPercentage: number
