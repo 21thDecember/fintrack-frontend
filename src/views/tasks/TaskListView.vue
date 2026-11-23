@@ -712,6 +712,17 @@ onMounted(() => {
       display: flex;
       flex-direction: column;
       gap: 8px;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+      will-change: transform;
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+
+        .stat-icon-wrap {
+          transform: scale(1.08);
+        }
+      }
 
       &.has-overdue {
         border-color: rgba(239, 68, 68, 0.3);
@@ -736,6 +747,7 @@ onMounted(() => {
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
           &.blue { background: rgba(59, 130, 246, 0.12); color: #3B82F6; }
           &.amber { background: rgba(245, 158, 11, 0.12); color: #F59E0B; }
@@ -815,11 +827,15 @@ onMounted(() => {
         align-items: center;
         gap: 7px;
         white-space: nowrap;
-        transition: all 0.2s ease;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+        &:active {
+          transform: scale(0.96);
+        }
 
         .tab-el-icon {
           font-size: 1rem;
-          transition: transform 0.2s ease;
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
           &.icon-today { color: #3B82F6; }
           &.icon-upcoming { color: #8B5CF6; }
@@ -909,9 +925,11 @@ onMounted(() => {
         border: 1px solid var(--app-card-border);
         border-radius: 12px;
         padding: 14px 16px;
-        transition: border-color 0.2s;
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
 
         &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
           border-color: rgba(16, 185, 129, 0.4);
         }
 
@@ -937,10 +955,15 @@ onMounted(() => {
             margin-top: 2px;
             flex-shrink: 0;
             color: #FFFFFF;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
             &:hover {
               border-color: #10B981;
+              transform: scale(1.08);
+            }
+
+            &:active {
+              transform: scale(0.85);
             }
 
             &.checked {

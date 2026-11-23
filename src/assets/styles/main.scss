@@ -211,6 +211,50 @@ a {
   }
 }
 
+// Popovers, Dropdowns & Tooltips Smooth Appearance
+.el-dropdown-menu,
+.el-select-dropdown,
+.el-popper.is-pure {
+  animation: popoverFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popoverFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+// Element Plus Tabs Animation
+.el-tabs__item {
+  transition: color 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s ease !important;
+  &:active {
+    transform: scale(0.96) !important;
+  }
+}
+
+.el-tabs__active-bar {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), width 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+// Pagination Tactile Feedback
+.el-pagination button,
+.el-pager li {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  &:active {
+    transform: scale(0.92) !important;
+  }
+}
+
+// Drawer Smooth Transition
+.el-drawer {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
 // Smooth Theme Transition
 body,
 .app-layout,
@@ -220,7 +264,7 @@ body,
   transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, color 0.25s ease;
 }
 
-// Table Customization
+// Table Customization with Smooth Row Hover
 .el-table {
   border-radius: 10px;
   overflow: hidden;
@@ -230,6 +274,10 @@ body,
   html.dark & {
     --el-table-header-bg-color: #1F2937;
     --el-table-row-hover-bg-color: #374151;
+  }
+
+  .el-table__row {
+    transition: background-color 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
 }
 
@@ -249,3 +297,4 @@ body,
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
+

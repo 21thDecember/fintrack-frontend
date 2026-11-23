@@ -250,7 +250,17 @@ onMounted(() => {
     border-radius: 10px;
     background: var(--app-bg);
     border: 1px solid var(--app-card-border);
-    transition: all 0.2s ease;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+
+    &:hover {
+      border-color: rgba(16, 185, 129, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+
+      .cat-dot {
+        transform: scale(1.15);
+      }
+    }
 
     &.is-inactive {
       opacity: 0.55;
@@ -266,6 +276,7 @@ onMounted(() => {
         width: 14px;
         height: 14px;
         border-radius: 4px;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
       .cat-info {

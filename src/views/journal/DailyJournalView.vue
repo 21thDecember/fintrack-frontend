@@ -535,11 +535,12 @@ watch(() => route.query.date, (newDate) => {
       align-items: center;
       gap: 6px;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.15s ease, background-color 0.15s ease;
 
       .mood-emoji {
         font-size: 26px;
         line-height: 1;
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
       }
       .mood-label {
         font-size: 12px;
@@ -550,13 +551,23 @@ watch(() => route.query.date, (newDate) => {
       &:hover {
         border-color: #3b82f6;
         background: rgba(59, 130, 246, 0.04);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.1);
+
+        .mood-emoji {
+          transform: scale(1.15);
+        }
+      }
+
+      &:active {
+        transform: scale(0.92);
       }
 
       &.is-selected {
         border-color: #3b82f6;
         background: rgba(59, 130, 246, 0.1);
-        transform: scale(1.02);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        transform: translateY(-2px) scale(1.04);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.18);
         .mood-label {
           color: #3b82f6;
           font-weight: 700;
@@ -580,7 +591,7 @@ watch(() => route.query.date, (newDate) => {
       align-items: center;
       gap: 4px;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.15s ease, background-color 0.15s ease;
 
       .energy-icon { font-size: 16px; }
       .energy-label {
@@ -591,11 +602,17 @@ watch(() => route.query.date, (newDate) => {
 
       &:hover {
         border-color: #f59e0b;
+        transform: translateY(-2px);
+      }
+
+      &:active {
+        transform: scale(0.92);
       }
 
       &.is-selected {
         border-color: #f59e0b;
         background: rgba(245, 158, 11, 0.12);
+        transform: translateY(-2px);
         .energy-label {
           color: #d97706;
           font-weight: 700;

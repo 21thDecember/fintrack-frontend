@@ -963,7 +963,17 @@ onMounted(() => {
       border-radius: 12px;
       padding: 16px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-      transition: all 0.2s;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+      will-change: transform;
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+
+        .stat-icon-wrap {
+          transform: scale(1.08);
+        }
+      }
 
       &.has-overdue {
         border-color: rgba(239, 68, 68, 0.4);
@@ -989,6 +999,7 @@ onMounted(() => {
           align-items: center;
           justify-content: center;
           font-size: 1rem;
+          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
           &.blue { background: rgba(59, 130, 246, 0.12); color: #3B82F6; }
           &.amber { background: rgba(245, 158, 11, 0.12); color: #F59E0B; }
@@ -1061,10 +1072,14 @@ onMounted(() => {
       background: var(--app-card-bg);
       border: 1px solid var(--app-card-border);
       color: var(--app-text);
-      transition: all 0.2s;
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 
       &:hover {
         background: rgba(0, 0, 0, 0.03);
+      }
+
+      &:active {
+        transform: scale(0.95);
       }
 
       &.active {
@@ -1142,11 +1157,13 @@ onMounted(() => {
         flex-direction: column;
         justify-content: space-between;
         gap: 14px;
-        transition: all 0.2s ease;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+        will-change: transform;
 
         &:hover {
-          border-color: rgba(99, 102, 241, 0.4);
-          transform: translateY(-1px);
+          border-color: rgba(99, 102, 241, 0.45);
+          transform: translateY(-3px);
+          box-shadow: 0 10px 24px rgba(99, 102, 241, 0.1);
         }
 
         &.goal-completed {

@@ -618,6 +618,12 @@ onMounted(() => {
       background: var(--app-card-bg);
       border: 1px solid var(--app-card-border);
       font-size: 0.875rem;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      }
 
       .label {
         color: var(--app-text-muted);

@@ -726,11 +726,14 @@ onMounted(() => {
       flex-direction: column;
       justify-content: space-between;
       gap: 12px;
-      transition: all 0.2s ease;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      will-change: transform;
 
       &:hover {
-        border-color: rgba(99, 102, 241, 0.35);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+        border-color: rgba(99, 102, 241, 0.45);
       }
 
       .card-body {
@@ -832,9 +835,11 @@ onMounted(() => {
             border-radius: 8px;
             font-size: 0.8125rem;
             background: rgba(0, 0, 0, 0.02);
+            transition: background-color 0.18s ease, transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 
             &:hover {
               background: rgba(0, 0, 0, 0.04);
+              transform: translateX(2px);
             }
 
             .item-left {
@@ -852,11 +857,15 @@ onMounted(() => {
                 background: transparent;
                 cursor: pointer;
                 flex-shrink: 0;
-                transition: all 0.2s;
+                transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
                 &:hover {
                   border-color: #10B981;
                   background: rgba(16, 185, 129, 0.1);
+                }
+
+                &:active {
+                  transform: scale(0.85);
                 }
               }
 
@@ -900,12 +909,17 @@ onMounted(() => {
               cursor: pointer;
               border: none;
               flex-shrink: 0;
-              transition: all 0.2s;
+              transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
               background: rgba(245, 158, 11, 0.15);
               color: #D97706;
 
               &:hover {
                 background: rgba(245, 158, 11, 0.25);
+                transform: scale(1.03);
+              }
+
+              &:active {
+                transform: scale(0.93);
               }
 
               &.done {
@@ -1046,6 +1060,18 @@ onMounted(() => {
     }
 
     .flow-card {
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+
+        .flow-icon-box {
+          transform: scale(1.08);
+        }
+      }
+
       .flow-card-content {
         display: flex;
         align-items: center;
@@ -1059,6 +1085,7 @@ onMounted(() => {
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
         &.income-box {
           background-color: rgba(16, 185, 129, 0.12);
@@ -1166,6 +1193,13 @@ onMounted(() => {
       border-radius: 8px;
       background: var(--app-bg);
       border: 1px solid var(--app-card-border);
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+        border-color: rgba(16, 185, 129, 0.35);
+      }
 
       .debt-left {
         display: flex;

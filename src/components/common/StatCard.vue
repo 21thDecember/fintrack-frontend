@@ -56,6 +56,17 @@ const displayValue = computed(() => {
 <style scoped lang="scss">
 .stat-card {
   height: 100%;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease !important;
+  will-change: transform;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08) !important;
+
+    .stat-icon-wrapper {
+      transform: scale(1.08);
+    }
+  }
 
   .stat-card-content {
     display: flex;
@@ -110,6 +121,7 @@ const displayValue = computed(() => {
     height: 48px;
     border-radius: 12px;
     flex-shrink: 0;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   @media (max-width: 640px) {

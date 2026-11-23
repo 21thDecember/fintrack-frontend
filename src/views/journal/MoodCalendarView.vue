@@ -441,6 +441,17 @@ onMounted(() => {
   flex-direction: column;
   justify-content: space-between;
   gap: 12px;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+  will-change: transform;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+
+    .stat-icon-wrapper {
+      transform: scale(1.08);
+    }
+  }
 
   .stat-header {
     display: flex;
@@ -459,6 +470,7 @@ onMounted(() => {
       align-items: center;
       justify-content: center;
       font-size: 18px;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
       &.mood-icon { background: rgba(59, 130, 246, 0.1); }
       &.energy-icon { background: rgba(245, 158, 11, 0.1); }
@@ -559,7 +571,7 @@ onMounted(() => {
       flex-direction: column;
       justify-content: space-between;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
       &.is-empty {
         background: transparent;
@@ -570,6 +582,12 @@ onMounted(() => {
       &:not(.is-empty):hover {
         border-color: #3b82f6;
         background: rgba(59, 130, 246, 0.04);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.1);
+      }
+
+      &:active:not(.is-empty) {
+        transform: scale(0.95);
       }
 
       &.is-today {

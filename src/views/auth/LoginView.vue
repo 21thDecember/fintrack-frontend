@@ -123,6 +123,18 @@ async function handleLogin() {
   .login-card-container {
     width: 100%;
     max-width: 440px;
+    animation: loginFadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes loginFadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 
   .login-header {

@@ -653,8 +653,12 @@ function handleLogout() {
       font-weight: 500;
       font-size: 0.875rem;
       text-decoration: none;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
+
+      &:active {
+        transform: scale(0.97);
+      }
 
       &:hover {
         background-color: var(--el-table-header-bg-color);
@@ -690,7 +694,11 @@ function handleLogout() {
         font-size: 0.875rem;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+        &:active {
+          transform: scale(0.98);
+        }
 
         &:hover {
           background-color: var(--el-table-header-bg-color);
@@ -766,8 +774,12 @@ function handleLogout() {
           color: var(--app-text-muted);
           font-weight: 500;
           text-decoration: none;
-          transition: all 0.2s ease;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
+
+          &:active {
+            transform: scale(0.97);
+          }
 
           &:hover {
             background-color: var(--el-table-header-bg-color);
@@ -969,7 +981,11 @@ function handleLogout() {
     flex: 1;
     height: 100%;
     text-decoration: none;
-    transition: color 0.2s;
+    transition: color 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s ease;
+
+    &:active {
+      transform: scale(0.92);
+    }
 
     &.router-link-active {
       color: #10B981;
@@ -995,10 +1011,11 @@ function handleLogout() {
       align-items: center;
       justify-content: center;
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-      transition: transform 0.2s;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 
       &:active {
-        transform: scale(0.95);
+        transform: scale(0.92);
+        box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
       }
     }
   }
@@ -1047,6 +1064,11 @@ function handleLogout() {
       font-weight: 600;
       font-size: 0.9375rem;
       text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+      &:active {
+        transform: scale(0.97);
+      }
 
       &.active {
         background: rgba(16, 185, 129, 0.12);
@@ -1107,6 +1129,11 @@ function handleLogout() {
           font-size: 0.875rem;
           color: var(--app-text-muted);
           text-decoration: none;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+          &:active {
+            transform: scale(0.97);
+          }
 
           &.active {
             background: rgba(16, 185, 129, 0.12);

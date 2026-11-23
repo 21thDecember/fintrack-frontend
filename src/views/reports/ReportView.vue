@@ -610,6 +610,12 @@ onMounted(() => {
       padding: 10px 12px;
       border-radius: 8px;
       background: var(--app-bg);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s ease;
+
+      &:hover {
+        transform: translateX(3px);
+        background: rgba(0, 0, 0, 0.03);
+      }
 
       .activity-info {
         display: flex;
@@ -640,6 +646,11 @@ onMounted(() => {
       display: flex;
       align-items: center;
       gap: 12px;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+      &:hover {
+        transform: translateX(3px);
+      }
 
       .cat-rank-badge {
         width: 26px;
@@ -689,6 +700,11 @@ onMounted(() => {
       align-items: center;
       gap: 6px;
       height: 100%;
+      cursor: pointer;
+
+      &:hover .t-bar {
+        filter: brightness(1.12);
+      }
 
       .t-period {
         font-size: 0.75rem;
@@ -708,7 +724,7 @@ onMounted(() => {
         width: 100%;
         background: linear-gradient(180deg, #34D399 0%, #10B981 100%);
         border-radius: 6px 6px 0 0;
-        transition: height 0.4s ease;
+        transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
       }
 
       .t-val {

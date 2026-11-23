@@ -936,6 +936,17 @@ onMounted(async () => {
       flex-direction: column;
       gap: 8px;
       min-width: 0;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+      will-change: transform;
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+
+        .stat-icon-wrap {
+          transform: scale(1.08);
+        }
+      }
 
       .stat-top {
         display: flex;
@@ -958,6 +969,7 @@ onMounted(async () => {
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
           &.blue { background: rgba(59, 130, 246, 0.12); color: #3B82F6; }
           &.amber { background: rgba(245, 158, 11, 0.12); color: #F59E0B; }
@@ -1073,12 +1085,16 @@ onMounted(async () => {
         align-items: center;
         gap: 4px;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
 
         &:hover {
           border-color: #10B981;
           transform: translateY(-2px);
+        }
+
+        &:active {
+          transform: scale(0.94);
         }
 
         &.active {
@@ -1316,12 +1332,16 @@ onMounted(async () => {
                 align-items: center;
                 justify-content: center;
                 font-weight: 700;
-                transition: all 0.2s;
+                transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
                 &:hover {
                   border-color: #10B981;
                   color: #10B981;
                   transform: scale(1.1);
+                }
+
+                &:active {
+                  transform: scale(0.88);
                 }
 
                 &.checked {
@@ -1405,10 +1425,13 @@ onMounted(async () => {
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        transition: all 0.2s;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+        will-change: transform;
 
         &:hover {
-          border-color: rgba(245, 158, 11, 0.4);
+          transform: translateY(-3px);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+          border-color: rgba(245, 158, 11, 0.45);
         }
 
         &.completed {
@@ -1470,11 +1493,16 @@ onMounted(async () => {
           justify-content: center;
           cursor: pointer;
           flex-shrink: 0;
-          transition: all 0.2s;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
           &:hover {
             border-color: #F59E0B;
             color: #F59E0B;
+            transform: scale(1.08);
+          }
+
+          &:active {
+            transform: scale(0.88);
           }
 
           &.done {
@@ -1485,7 +1513,7 @@ onMounted(async () => {
             &:hover {
               background: #059669;
               border-color: #059669;
-              transform: scale(1.05);
+              transform: scale(1.08);
             }
           }
         }

@@ -85,10 +85,20 @@ function getCategoryInitials(name?: string) {
   min-width: 0;
   max-width: 100%;
   width: 100%;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    border-color: rgba(16, 185, 129, 0.35);
+
+    .category-icon-box {
+      transform: scale(1.06);
+    }
+  }
 
   &:active {
-    transform: scale(0.99);
+    transform: scale(0.97);
   }
 
   .card-left {
@@ -109,6 +119,7 @@ function getCategoryInitials(name?: string) {
     font-weight: 700;
     font-size: 0.8125rem;
     flex-shrink: 0;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .details {

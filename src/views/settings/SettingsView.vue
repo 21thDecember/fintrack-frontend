@@ -363,6 +363,11 @@ onMounted(() => {
 
   .settings-card {
     border-radius: 14px;
+    transition: box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+    }
 
     .card-header-flex {
       display: flex;

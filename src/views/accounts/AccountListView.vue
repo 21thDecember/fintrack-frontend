@@ -248,6 +248,10 @@ onMounted(() => {
         transform: translateY(-1px);
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
       }
+
+      &:active {
+        transform: scale(0.96);
+      }
     }
   }
 
@@ -259,7 +263,17 @@ onMounted(() => {
 
   .account-card {
     border-radius: 14px;
-    transition: all 0.25s ease;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+    will-change: transform;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+
+      .acc-badge-icon {
+        transform: scale(1.08);
+      }
+    }
 
     &.is-inactive {
       opacity: 0.6;
@@ -279,6 +293,7 @@ onMounted(() => {
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
         &.bank { background: rgba(59, 130, 246, 0.12); color: #3B82F6; }
         &.cash { background: rgba(16, 185, 129, 0.12); color: #10B981; }

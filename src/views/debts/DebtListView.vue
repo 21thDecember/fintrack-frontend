@@ -738,13 +738,17 @@ onMounted(() => {
         border: 1px solid var(--app-card-border);
         background: var(--app-bg);
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 
         &:hover {
           border-color: #10B981;
           background: #fff;
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+        }
+
+        &:active {
+          transform: scale(0.97);
         }
 
         &.is-active {
@@ -912,6 +916,17 @@ onMounted(() => {
         border: 1px solid var(--app-card-border);
         border-radius: 10px;
         cursor: pointer;
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+          border-color: rgba(16, 185, 129, 0.35);
+        }
+
+        &:active {
+          transform: scale(0.98);
+        }
 
         .card-top {
           display: flex;
