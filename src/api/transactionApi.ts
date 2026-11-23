@@ -39,6 +39,13 @@ export const transactionApi = {
     return res.data.data
   },
 
+  updateNote: async (id: string, note?: string): Promise<Transaction> => {
+    const res = await apiClient.patch<ApiResponse<Transaction>>(`/transactions/${id}/note`, {
+      note
+    })
+    return res.data.data
+  },
+
   deleteTransaction: async (id: string): Promise<void> => {
     await apiClient.delete(`/transactions/${id}`)
   }

@@ -52,7 +52,12 @@ export const useTransactionStore = defineStore('transaction', () => {
         page: currentPage.value - 1,
         pageSize: pageSize.value
       })
-      transactions.value = res.content || []
+      transactions.value = (res.content || []).map(t => {
+        if (t.note && t.note.startsWith('Cổng:') && t.note.includes('Tích lũy:')) {
+          return { ...t, note: '' }
+        }
+        return t
+      })
       totalElements.value = res.totalElements || 0
       totalPages.value = res.totalPages || 1
     } catch (err) {
@@ -128,6 +133,25 @@ export const useTransactionStore = defineStore('transaction', () => {
     }
   }
 
+  async function quickUpdateNote(id: string, note?: string) {
+    try {
+      const updated = await transactionApi.updateNote(id, note)
+      const idx = transactions.value.findIndex(t => t.id === id)
+      if (idx !== -1) {
+        transactions.value[idx] = {
+          ...transactions.value[idx],
+          note: updated.note
+        }
+      }
+      ElMessage.success('Đã cập nhật ghi chú!')
+      return updated
+    } catch (err) {
+      console.error('Failed to update note', err)
+      ElMessage.error('Không thể cập nhật ghi chú')
+      throw err
+    }
+  }
+
   async function deleteTransaction(id: string) {
     loading.value = true
     try {
@@ -160,6 +184,7 @@ export const useTransactionStore = defineStore('transaction', () => {
     createTransaction,
     updateTransaction,
     quickClassify,
+    quickUpdateNote,
     deleteTransaction
   }
 })

@@ -163,6 +163,14 @@
                   <el-tag size="small" :type="row.source === 'BANK' ? 'primary' : 'info'" effect="plain">
                     {{ row.source === 'BANK' ? 'Ngân hàng' : 'Thủ công' }}
                   </el-tag>
+                  <el-tag
+                    v-if="row.type && row.type !== 'EXPENSE' && row.type !== 'INCOME'"
+                    size="small"
+                    type="info"
+                    effect="plain"
+                  >
+                    {{ getTransactionTypeLabel(row.type) }}
+                  </el-tag>
                   <el-tag v-if="row.personName" size="small" type="success" effect="light">
                     👤 {{ row.personName }}
                   </el-tag>
@@ -182,35 +190,38 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="Danh mục" width="160">
+          <el-table-column label="Danh mục" width="165">
             <template #default="{ row }">
-              <!-- If classified, show tag. If unclassified, quick select! -->
               <el-select
-                v-if="row.classificationStatus === 'UNCLASSIFIED'"
                 v-model="row.categoryId"
                 placeholder="Chọn danh mục"
                 size="small"
+                filterable
                 @change="(val: string) => handleQuickClassify(row.id, val)"
+                class="category-select"
               >
+                <template #prefix>
+                  <span
+                    v-if="getCategoryColor(row.categoryId)"
+                    class="cat-prefix-dot"
+                    :style="{ backgroundColor: getCategoryColor(row.categoryId) }"
+                  ></span>
+                </template>
                 <el-option
                   v-for="cat in categoryStore.categories"
                   :key="cat.id"
                   :label="cat.name"
                   :value="cat.id"
-                />
+                >
+                  <div class="cat-option-row">
+                    <span
+                      class="cat-color-dot"
+                      :style="{ backgroundColor: cat.color || '#94A3B8' }"
+                    ></span>
+                    <span>{{ cat.name }}</span>
+                  </div>
+                </el-option>
               </el-select>
-              <el-tag
-                v-else-if="row.category?.name || row.categoryName"
-                size="small"
-                :style="{
-                  backgroundColor: (row.category?.color || row.categoryColor) ? `${row.category?.color || row.categoryColor}15` : undefined,
-                  borderColor: row.category?.color || row.categoryColor || undefined,
-                  color: row.category?.color || row.categoryColor || undefined
-                }"
-              >
-                {{ row.category?.name || row.categoryName }}
-              </el-tag>
-              <span v-else class="text-muted text-xs">—</span>
             </template>
           </el-table-column>
 
@@ -220,11 +231,22 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="Loại" width="130">
+          <el-table-column label="Ghi chú thêm" min-width="190">
             <template #default="{ row }">
-              <span class="text-xs font-medium text-muted">
-                {{ getTransactionTypeLabel(row.type) }}
-              </span>
+              <el-input
+                v-model="row.note"
+                placeholder="Thêm ghi chú..."
+                size="small"
+                clearable
+                @focus="handleFocusNote(row)"
+                @blur="handleSaveNote(row)"
+                @keyup.enter="(e: any) => e.target.blur()"
+                class="note-quick-input"
+              >
+                <template #prefix>
+                  <el-icon class="text-muted"><EditPen /></el-icon>
+                </template>
+              </el-input>
             </template>
           </el-table-column>
 
@@ -295,7 +317,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Search, Plus, RefreshRight } from '@element-plus/icons-vue'
+import { Search, Plus, RefreshRight, EditPen } from '@element-plus/icons-vue'
 import { useTransactionStore } from '@/stores/transaction'
 import { useAccountStore } from '@/stores/account'
 import { useCategoryStore } from '@/stores/category'
@@ -429,6 +451,34 @@ async function handleQuickClassify(id: string, categoryId: string) {
     if (tx) {
       tx.categoryId = undefined
     }
+  }
+}
+
+function getCategoryColor(categoryId?: string) {
+  if (!categoryId) return ''
+  const cat = categoryStore.categories.find(c => c.id === categoryId)
+  return cat?.color || ''
+}
+
+const originalNotes = new Map<string, string>()
+
+function handleFocusNote(row: any) {
+  if (row.note && row.note.startsWith('Cổng:') && row.note.includes('Tích lũy:')) {
+    row.note = ''
+  }
+  originalNotes.set(row.id, row.note || '')
+}
+
+async function handleSaveNote(row: any) {
+  const oldVal = originalNotes.get(row.id) ?? ''
+  const newVal = (row.note || '').trim()
+  if (oldVal.trim() === newVal) return
+
+  try {
+    await transactionStore.quickUpdateNote(row.id, newVal)
+    originalNotes.set(row.id, newVal)
+  } catch (err) {
+    row.note = oldVal
   }
 }
 
@@ -665,6 +715,67 @@ onMounted(() => {
       .tag-row {
         display: flex;
         gap: 6px;
+      }
+    }
+
+    .category-select {
+      width: 100%;
+
+      .cat-option-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .cat-color-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+      }
+
+      .cat-prefix-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 4px;
+        display: inline-block;
+        flex-shrink: 0;
+      }
+    }
+
+    .note-quick-input {
+      width: 100%;
+
+      :deep(.el-input__wrapper) {
+        background-color: transparent;
+        box-shadow: none;
+        border: 1px dashed transparent;
+        transition: all 0.2s ease;
+        padding-left: 6px;
+        padding-right: 6px;
+
+        &:hover {
+          background-color: var(--el-fill-color-light);
+          border-color: var(--el-border-color);
+        }
+
+        &.is-focus {
+          background-color: #fff;
+          box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+          border-color: transparent;
+        }
+      }
+
+      :deep(.el-input__inner) {
+        font-size: 0.825rem;
+        color: var(--app-text);
+
+        &::placeholder {
+          font-style: italic;
+          color: var(--app-text-muted);
+          opacity: 0.65;
+        }
       }
     }
 

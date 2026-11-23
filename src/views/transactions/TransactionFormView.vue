@@ -598,7 +598,7 @@ async function loadTransaction() {
       form.dueDate = (tx as any).dueDate || undefined
       form.description = tx.description
       form.originalDescription = tx.originalDescription
-      form.note = tx.note || ''
+      form.note = (tx.note && tx.note.startsWith('Cổng:') && tx.note.includes('Tích lũy:')) ? '' : (tx.note || '')
       form.transactionDate = tx.transactionDate
       form.allocations = tx.debtAllocations?.map((a: any) => ({
         id: a.id,
