@@ -55,7 +55,7 @@
                 v-model="item.allocatedAmount"
                 :min="0"
                 :max="transactionAmount"
-                :step="10000"
+                :step="1"
                 controls-position="right"
                 placeholder="Số tiền chia"
                 style="width: 100%"

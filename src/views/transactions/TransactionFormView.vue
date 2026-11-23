@@ -27,6 +27,7 @@
           :rules="rules"
           label-position="top"
           size="large"
+          novalidate
           @submit.prevent="handleSubmit"
         >
           <!-- 1. Transaction Type Selector -->
@@ -79,7 +80,7 @@
                   v-model="form.amount"
                   :min="1000"
                   :max="100000000000"
-                  :step="50000"
+                  :step="1"
                   :disabled="isBankTransaction"
                   controls-position="right"
                   class="prominent-amount-input"

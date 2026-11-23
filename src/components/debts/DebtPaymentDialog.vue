@@ -19,13 +19,13 @@
       </div>
     </div>
 
-    <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
+    <el-form ref="formRef" :model="form" :rules="rules" label-position="top" novalidate>
       <el-form-item label="Số tiền thanh toán" prop="amount">
         <el-input-number
           v-model="form.amount"
           :min="1000"
           :max="debt?.remainingAmount || 1000000000"
-          :step="100000"
+          :step="1"
           controls-position="right"
           style="width: 100%"
         />

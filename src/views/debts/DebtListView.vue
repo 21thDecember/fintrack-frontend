@@ -271,7 +271,7 @@
       width="500px"
       append-to-body
     >
-      <el-form ref="createFormRef" :model="newDebtForm" :rules="createRules" label-position="top">
+      <el-form ref="createFormRef" :model="newDebtForm" :rules="createRules" label-position="top" novalidate>
         <el-form-item label="Loại sổ nợ" prop="type">
           <el-radio-group v-model="newDebtForm.type">
             <el-radio-button label="RECEIVABLE">Phải thu (Họ nợ mình)</el-radio-button>
@@ -326,7 +326,7 @@
             v-model="newDebtForm.principalAmount"
             :min="1000"
             :max="100000000000"
-            :step="100000"
+            :step="1"
             controls-position="right"
             style="width: 100%"
           />

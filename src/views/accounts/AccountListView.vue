@@ -70,7 +70,7 @@
       width="480px"
       append-to-body
     >
-      <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top" novalidate>
         <el-form-item label="Tên tài khoản / Ví" prop="name">
           <el-input v-model="form.name" placeholder="Ví dụ: Vietcombank Lương, Ví tiền mặt..." />
         </el-form-item>
@@ -97,7 +97,7 @@
             v-model="form.openingBalance"
             :min="0"
             :max="100000000000"
-            :step="500000"
+            :step="1"
             :disabled="!!editingId"
             controls-position="right"
             style="width: 100%"
