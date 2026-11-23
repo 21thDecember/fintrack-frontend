@@ -58,7 +58,7 @@ function handleMockFallback(config: AxiosRequestConfig): AxiosResponse<any> {
   if (url.includes('/auth/login')) {
     data = {
       token: 'mock-jwt-token-vietnam-personal-finance-2026',
-      user: { id: 'usr-1', username: 'admin', fullName: 'Nguyễn Quản Trị', role: 'USER' }
+      user: { id: 'usr-1', username: 'admin', fullName: 'Phạm Huỳnh Văn Phát', role: 'USER' }
     }
   }
   // 2. Accounts

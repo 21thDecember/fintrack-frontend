@@ -9,7 +9,12 @@ function getStoredUser(): User | null {
   try {
     const raw = localStorage.getItem('user')
     if (!raw || raw === 'undefined' || raw === 'null') return null
-    return JSON.parse(raw)
+    const parsed = JSON.parse(raw)
+    if (parsed && (parsed.fullName === 'Quản trị viên' || parsed.fullName === 'Nguyễn Quản Trị')) {
+      parsed.fullName = 'Phạm Huỳnh Văn Phát'
+      localStorage.setItem('user', JSON.stringify(parsed))
+    }
+    return parsed
   } catch {
     localStorage.removeItem('user')
     return null
@@ -30,11 +35,11 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = response.token
       
       const username = response.username || response.user?.username || credentials.username
-      const userObj: User = response.user || {
-        id: 'usr-admin',
+      const userObj: User = {
+        id: response.user?.id || 'usr-admin',
         username: username,
-        fullName: 'Quản trị viên',
-        role: 'ROLE_ADMIN'
+        fullName: response.user?.fullName || 'Phạm Huỳnh Văn Phát',
+        role: response.user?.role || 'ROLE_ADMIN'
       }
       user.value = userObj
       
