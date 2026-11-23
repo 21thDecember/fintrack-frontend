@@ -41,6 +41,12 @@
             Lịch sử học
           </el-button>
         </router-link>
+        <router-link to="/learning/notes" class="subnav-link">
+          <el-button round size="default">
+            <el-icon><Notebook /></el-icon>
+            Sổ tay ghi chú
+          </el-button>
+        </router-link>
         <el-button type="primary" round size="default" :icon="Plus" @click="openCreateModal">
           Thêm kỹ năng
         </el-button>
@@ -331,7 +337,8 @@ import {
   Timer,
   Plus,
   Search,
-  MoreFilled
+  MoreFilled,
+  Notebook
 } from '@element-plus/icons-vue'
 import { learningApi } from '@/api/learningApi'
 import { goalApi } from '@/api/goalApi'

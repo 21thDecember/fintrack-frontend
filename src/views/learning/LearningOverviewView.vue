@@ -41,6 +41,12 @@
             Lịch sử học
           </el-button>
         </router-link>
+        <router-link to="/learning/notes" class="subnav-link">
+          <el-button round size="default">
+            <el-icon><Notebook /></el-icon>
+            Sổ tay ghi chú
+          </el-button>
+        </router-link>
         <el-button type="success" round size="default" :icon="Plus" @click="openQuickSessionModal">
           Ghi phiên học
         </el-button>
@@ -200,6 +206,14 @@
             <el-select v-model="quickForm.skillId" placeholder="Chọn kỹ năng" clearable filterable style="width: 100%">
               <el-option v-for="s in skillOptions" :key="s.id" :label="s.name" :value="s.id" />
             </el-select>
+          </el-form-item>
+          <el-form-item label="Ghi chú chi tiết phiên học">
+            <el-input
+              v-model="quickForm.notes"
+              type="textarea"
+              :autosize="{ minRows: 2, maxRows: 6 }"
+              placeholder="Kiến thức rút ra, bài học cần nhớ hoặc thắc mắc từ buổi học..."
+            />
           </el-form-item>
           <el-button type="primary" round :loading="savingQuick" class="submit-btn" @click="submitQuickSession">
             Lưu phiên học ngay
@@ -399,7 +413,8 @@ import {
   Calendar,
   Histogram,
   Lightning,
-  List
+  List,
+  Notebook
 } from '@element-plus/icons-vue'
 import { learningApi } from '@/api/learningApi'
 import type {

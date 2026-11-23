@@ -41,6 +41,12 @@
             Lịch sử học
           </el-button>
         </router-link>
+        <router-link to="/learning/notes" class="subnav-link">
+          <el-button round size="default">
+            <el-icon><Notebook /></el-icon>
+            Sổ tay ghi chú
+          </el-button>
+        </router-link>
         <el-button type="primary" round size="default" :icon="Plus" @click="openCreateModal">
           Thêm sách mới
         </el-button>
@@ -145,11 +151,30 @@
           </div>
         </div>
 
+        <!-- Book Notes / Summary Preview -->
+        <div v-if="b.notes" class="book-notes-preview" @click="openNotesModal(b)" title="Bấm để xem và sửa đúc kết sách">
+          <div class="notes-preview-head">
+            <el-icon><Notebook /></el-icon>
+            <span>Đúc kết & Ghi chú sách</span>
+          </div>
+          <p class="notes-preview-text">{{ b.notes }}</p>
+        </div>
+
         <!-- Footer Actions -->
         <div class="card-actions">
           <div class="left-actions">
             <el-button size="small" type="success" plain round @click="openPageModal(b)">
               Cập nhật trang
+            </el-button>
+            <el-button
+              size="small"
+              :type="b.notes ? 'warning' : 'default'"
+              plain
+              round
+              @click="openNotesModal(b)"
+            >
+              <el-icon><Notebook /></el-icon>
+              {{ b.notes ? 'Đúc kết sách' : '+ Đúc kết' }}
             </el-button>
             <a v-if="b.url" :href="b.url" target="_blank" rel="noopener noreferrer" class="link-btn">
               <el-button size="small" round plain>
@@ -165,6 +190,7 @@
               </el-button>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item command="notes">📖 Ghi chú & Đúc kết sách</el-dropdown-item>
                   <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
                   <el-dropdown-item command="status_reading" v-if="b.status !== 'READING'">Chuyển sang: Đang đọc</el-dropdown-item>
                   <el-dropdown-item command="status_completed" v-if="b.status !== 'COMPLETED'">Đánh dấu đã đọc xong</el-dropdown-item>
@@ -299,6 +325,59 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- Book Summary & Notes Dialog -->
+    <el-dialog
+      v-model="showNotesDialog"
+      :title="`📖 Ghi chú & Đúc kết sách: ${selectedBookForNotes?.title || ''}`"
+      width="720px"
+      destroy-on-close
+      class="book-notes-dialog"
+    >
+      <div v-if="selectedBookForNotes" class="book-notes-content">
+        <div class="notes-info-bar">
+          <div class="info-left">
+            <span v-if="selectedBookForNotes.author" class="author-pill">
+              <el-icon><Document /></el-icon> {{ selectedBookForNotes.author }}
+            </span>
+            <span class="pages-pill">
+              <el-icon><Reading /></el-icon> Tiến độ: {{ selectedBookForNotes.currentPage || 0 }}/{{ selectedBookForNotes.totalPages || '?' }} trang ({{ selectedBookForNotes.progressPercent || 0 }}%)
+            </span>
+          </div>
+          <div class="template-actions">
+            <el-button size="small" text type="success" @click="insertBookTemplate">
+              💡 Chèn mẫu đúc kết
+            </el-button>
+            <el-button size="small" text @click="copyNotesToClipboard">
+              📋 Sao chép
+            </el-button>
+          </div>
+        </div>
+
+        <div class="notes-form-item">
+          <el-input
+            v-model="bookNotesText"
+            type="textarea"
+            :autosize="{ minRows: 10, maxRows: 26 }"
+            placeholder="Ghi lại tóm tắt nội dung cuốn sách, những bài học tâm đắc nhất, trích dẫn hay (quotes) hoặc hành động rút ra..."
+            class="notes-textarea"
+          />
+        </div>
+        <div class="notes-char-count">
+          <span>{{ bookNotesText ? bookNotesText.length : 0 }} ký tự</span>
+          <span>Tự do ghi chép dài không giới hạn</span>
+        </div>
+      </div>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showNotesDialog = false">Đóng</el-button>
+          <el-button type="primary" :loading="savingNotes" @click="saveBookNotes">
+            Lưu đúc kết sách
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -316,7 +395,8 @@ import {
   Document,
   Calendar,
   Link,
-  MoreFilled
+  MoreFilled,
+  Notebook
 } from '@element-plus/icons-vue'
 import { learningApi } from '@/api/learningApi'
 import { goalApi } from '@/api/goalApi'
@@ -340,6 +420,11 @@ const selectedBookForPage = ref<Book | null>(null)
 const progressCurrentPage = ref<number>(0)
 const progressTotalPages = ref<number | undefined>(undefined)
 const savingPage = ref(false)
+
+const showNotesDialog = ref(false)
+const selectedBookForNotes = ref<Book | null>(null)
+const bookNotesText = ref('')
+const savingNotes = ref(false)
 
 const bookForm = ref<BookRequest>({
   title: '',
@@ -532,8 +617,71 @@ const savePage = async () => {
   }
 }
 
+const openNotesModal = (b: Book) => {
+  selectedBookForNotes.value = b
+  bookNotesText.value = b.notes || ''
+  showNotesDialog.value = true
+}
+
+const insertBookTemplate = () => {
+  const template = `🌟 TỔNG QUAN & ĐÁNH GIÁ CUỐN SÁCH:
+- 
+
+💡 BÀI HỌC TÂM ĐẮC NHẤT (KEY TAKEAWAYS):
+1. 
+2. 
+3. 
+
+💬 TRÍCH DẪN ĐẮC GIÁ (QUOTES):
+- "..."
+
+🚀 HÀNH ĐỘNG / THỰC HÀNH RÚT RA:
+- `
+  if (!bookNotesText.value.trim()) {
+    bookNotesText.value = template
+  } else {
+    bookNotesText.value = bookNotesText.value + '\n\n' + template
+  }
+}
+
+const copyNotesToClipboard = async () => {
+  if (!bookNotesText.value) {
+    ElMessage.info('Chưa có nội dung ghi chú để sao chép')
+    return
+  }
+  try {
+    await navigator.clipboard.writeText(bookNotesText.value)
+    ElMessage.success('Đã sao chép ghi chú vào bộ nhớ tạm!')
+  } catch {
+    ElMessage.error('Không thể tự động sao chép')
+  }
+}
+
+const saveBookNotes = async () => {
+  if (!selectedBookForNotes.value) return
+  savingNotes.value = true
+  try {
+    const updated = await learningApi.updateBookNotes(
+      selectedBookForNotes.value.id,
+      bookNotesText.value
+    )
+    selectedBookForNotes.value.notes = updated.notes
+    const found = books.value.find(b => b.id === updated.id)
+    if (found) found.notes = updated.notes
+    ElMessage.success('Đã lưu đúc kết sách thành công!')
+    showNotesDialog.value = false
+  } catch (err: any) {
+    console.error('Failed to save book notes', err)
+    ElMessage.error(err.response?.data?.message || 'Lỗi khi lưu đúc kết')
+  } finally {
+    savingNotes.value = false
+  }
+}
+
 const handleCardAction = async (command: string, b: Book) => {
-  if (command === 'edit') {
+  if (command === 'notes') {
+    openNotesModal(b)
+  } else if (command === 'edit') {
     openEditModal(b)
   } else if (command.startsWith('status_')) {
     const newStatus = command.replace('status_', '').toUpperCase() as BookStatus
@@ -779,6 +927,90 @@ onMounted(() => {
         }
       }
     }
+  }
+}
+
+.book-notes-preview {
+  background: var(--app-bg-secondary, #f8fafc);
+  border: 1px dashed var(--app-card-border, #cbd5e1);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.04);
+  }
+
+  .notes-preview-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #059669;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .notes-preview-text {
+    font-size: 12px;
+    color: var(--app-text, #334155);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+}
+
+.book-notes-dialog {
+  .notes-info-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--app-bg-secondary, #f8fafc);
+    border-radius: 8px;
+    margin-bottom: 14px;
+
+    .info-left {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--app-text-muted, #64748b);
+      .author-pill, .pages-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+    }
+  }
+
+  .notes-form-item {
+    margin-bottom: 8px;
+    .notes-textarea textarea {
+      font-family: inherit;
+      font-size: 13.5px;
+      line-height: 1.6;
+      padding: 12px;
+      border-radius: 8px;
+    }
+  }
+
+  .notes-char-count {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--app-text-muted, #94a3b8);
+    padding: 0 4px;
   }
 }
 

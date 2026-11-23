@@ -41,6 +41,12 @@
             Lịch sử học
           </el-button>
         </router-link>
+        <router-link to="/learning/notes" class="subnav-link">
+          <el-button round size="default">
+            <el-icon><Notebook /></el-icon>
+            Sổ tay ghi chú
+          </el-button>
+        </router-link>
         <el-button type="primary" round size="default" :icon="Plus" @click="openCreateModal">
           Thêm khóa học
         </el-button>
@@ -148,6 +154,15 @@
           </div>
         </div>
 
+        <!-- Course Theory Notes Preview -->
+        <div v-if="c.notes" class="course-notes-preview" @click="openNotesModal(c)" title="Bấm để xem và sửa ghi chú lý thuyết">
+          <div class="notes-preview-head">
+            <el-icon><Notebook /></el-icon>
+            <span>Ghi chú lý thuyết</span>
+          </div>
+          <p class="notes-preview-text">{{ c.notes }}</p>
+        </div>
+
         <!-- Footer Actions -->
         <div class="card-actions">
           <div class="left-actions">
@@ -159,6 +174,16 @@
             <el-button size="small" type="primary" plain round @click="openProgressModal(c)">
               Cập nhật bài
             </el-button>
+            <el-button
+              size="small"
+              :type="c.notes ? 'warning' : 'default'"
+              plain
+              round
+              @click="openNotesModal(c)"
+            >
+              <el-icon><Notebook /></el-icon>
+              {{ c.notes ? 'Lý thuyết' : '+ Note' }}
+            </el-button>
           </div>
 
           <div class="right-actions">
@@ -168,6 +193,7 @@
               </el-button>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item command="notes">📝 Ghi chú lý thuyết</el-dropdown-item>
                   <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
                   <el-dropdown-item command="status_in_progress" v-if="c.status !== 'IN_PROGRESS'">Chuyển sang: Đang học</el-dropdown-item>
                   <el-dropdown-item command="status_completed" v-if="c.status !== 'COMPLETED'">Đánh dấu hoàn thành</el-dropdown-item>
@@ -308,6 +334,59 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- Course Theory & Detailed Notes Dialog -->
+    <el-dialog
+      v-model="showNotesDialog"
+      :title="`📝 Ghi chú & Lý thuyết: ${selectedCourseForNotes?.title || ''}`"
+      width="720px"
+      destroy-on-close
+      class="theory-notes-dialog"
+    >
+      <div v-if="selectedCourseForNotes" class="theory-notes-content">
+        <div class="notes-info-bar">
+          <div class="info-left">
+            <span v-if="selectedCourseForNotes.provider" class="provider-pill">
+              <el-icon><School /></el-icon> {{ selectedCourseForNotes.provider }}
+            </span>
+            <span class="lessons-pill">
+              <el-icon><VideoPlay /></el-icon> Tiến độ: {{ selectedCourseForNotes.completedLessons || 0 }}/{{ selectedCourseForNotes.totalLessons || '?' }} bài ({{ selectedCourseForNotes.progressPercent || 0 }}%)
+            </span>
+          </div>
+          <div class="template-actions">
+            <el-button size="small" text type="primary" @click="insertCourseTemplate">
+              💡 Chèn mẫu dàn ý
+            </el-button>
+            <el-button size="small" text @click="copyNotesToClipboard">
+              📋 Sao chép
+            </el-button>
+          </div>
+        </div>
+
+        <div class="notes-form-item">
+          <el-input
+            v-model="courseNotesText"
+            type="textarea"
+            :autosize="{ minRows: 10, maxRows: 26 }"
+            placeholder="Ghi chép lý thuyết quan trọng, bài học rút ra, mã code mẫu, phím tắt hoặc kiến thức cần nhớ..."
+            class="notes-textarea"
+          />
+        </div>
+        <div class="notes-char-count">
+          <span>{{ courseNotesText ? courseNotesText.length : 0 }} ký tự</span>
+          <span>Tự động co giãn theo nội dung ghi chép</span>
+        </div>
+      </div>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showNotesDialog = false">Đóng</el-button>
+          <el-button type="primary" :loading="savingNotes" @click="saveCourseNotes">
+            Lưu ghi chú lý thuyết
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -327,7 +406,8 @@ import {
   Clock,
   Calendar,
   Link,
-  MoreFilled
+  MoreFilled,
+  Notebook
 } from '@element-plus/icons-vue'
 import { learningApi } from '@/api/learningApi'
 import { goalApi } from '@/api/goalApi'
@@ -352,6 +432,11 @@ const selectedCourseForProgress = ref<Course | null>(null)
 const progressCompletedLessons = ref<number>(0)
 const progressTotalLessons = ref<number | undefined>(undefined)
 const savingProgress = ref(false)
+
+const showNotesDialog = ref(false)
+const selectedCourseForNotes = ref<Course | null>(null)
+const courseNotesText = ref('')
+const savingNotes = ref(false)
 
 const courseForm = ref<CourseRequest>({
   title: '',
@@ -548,8 +633,69 @@ const saveProgress = async () => {
   }
 }
 
+const openNotesModal = (c: Course) => {
+  selectedCourseForNotes.value = c
+  courseNotesText.value = c.notes || ''
+  showNotesDialog.value = true
+}
+
+const insertCourseTemplate = () => {
+  const template = `💡 KIẾN THỨC TRỌNG TÂM:
+- 
+
+📖 LÝ THUYẾT & KHÁI NIỆM QUAN TRỌNG:
+- 
+
+⚙️ VÍ DỤ / CÔNG THỨC / CODE MẪU:
+- 
+
+⚠️ LƯU Ý / CÂU HỎI CẦN ÔN LẠI:
+- `
+  if (!courseNotesText.value.trim()) {
+    courseNotesText.value = template
+  } else {
+    courseNotesText.value = courseNotesText.value + '\n\n' + template
+  }
+}
+
+const copyNotesToClipboard = async () => {
+  if (!courseNotesText.value) {
+    ElMessage.info('Chưa có nội dung ghi chú để sao chép')
+    return
+  }
+  try {
+    await navigator.clipboard.writeText(courseNotesText.value)
+    ElMessage.success('Đã sao chép ghi chú vào bộ nhớ tạm!')
+  } catch {
+    ElMessage.error('Không thể tự động sao chép')
+  }
+}
+
+const saveCourseNotes = async () => {
+  if (!selectedCourseForNotes.value) return
+  savingNotes.value = true
+  try {
+    const updated = await learningApi.updateCourseNotes(
+      selectedCourseForNotes.value.id,
+      courseNotesText.value
+    )
+    selectedCourseForNotes.value.notes = updated.notes
+    const found = courses.value.find(c => c.id === updated.id)
+    if (found) found.notes = updated.notes
+    ElMessage.success('Đã lưu ghi chú lý thuyết thành công!')
+    showNotesDialog.value = false
+  } catch (err: any) {
+    console.error('Failed to save course notes', err)
+    ElMessage.error(err.response?.data?.message || 'Lỗi khi lưu ghi chú')
+  } finally {
+    savingNotes.value = false
+  }
+}
+
 const handleCardAction = async (command: string, c: Course) => {
-  if (command === 'edit') {
+  if (command === 'notes') {
+    openNotesModal(c)
+  } else if (command === 'edit') {
     openEditModal(c)
   } else if (command.startsWith('status_')) {
     const newStatus = command.replace('status_', '').toUpperCase() as CourseStatus
@@ -769,6 +915,90 @@ onMounted(() => {
         }
       }
     }
+  }
+}
+
+.course-notes-preview {
+  background: var(--app-bg-secondary, #f8fafc);
+  border: 1px dashed var(--app-card-border, #cbd5e1);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.04);
+  }
+
+  .notes-preview-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #2563eb;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .notes-preview-text {
+    font-size: 12px;
+    color: var(--app-text, #334155);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+}
+
+.theory-notes-dialog {
+  .notes-info-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--app-bg-secondary, #f8fafc);
+    border-radius: 8px;
+    margin-bottom: 14px;
+
+    .info-left {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--app-text-muted, #64748b);
+      .provider-pill, .lessons-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+    }
+  }
+
+  .notes-form-item {
+    margin-bottom: 8px;
+    .notes-textarea textarea {
+      font-family: inherit;
+      font-size: 13.5px;
+      line-height: 1.6;
+      padding: 12px;
+      border-radius: 8px;
+    }
+  }
+
+  .notes-char-count {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--app-text-muted, #94a3b8);
+    padding: 0 4px;
   }
 }
 

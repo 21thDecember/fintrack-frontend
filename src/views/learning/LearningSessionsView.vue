@@ -41,6 +41,12 @@
             Lịch sử học
           </el-button>
         </router-link>
+        <router-link to="/learning/notes" class="subnav-link">
+          <el-button round size="default">
+            <el-icon><Notebook /></el-icon>
+            Sổ tay ghi chú
+          </el-button>
+        </router-link>
         <el-button type="success" round size="default" :icon="Plus" @click="openCreateModal">
           Ghi phiên học
         </el-button>
@@ -162,18 +168,28 @@
                 </el-tag>
               </div>
 
-              <div v-if="s.notes" class="session-notes-box">
-                <el-icon><Document /></el-icon>
-                <span>{{ s.notes }}</span>
+              <div v-if="s.notes" class="session-notes-box" @click="openQuickNotesModal(s)" title="Bấm để xem hoặc chỉnh sửa ghi chép chi tiết">
+                <el-icon><Notebook /></el-icon>
+                <span class="notes-text-span">{{ s.notes }}</span>
               </div>
             </div>
           </div>
 
           <div class="session-actions">
-            <el-button size="small" circle @click="openEditModal(s)">
+            <el-button
+              size="small"
+              circle
+              :type="s.notes ? 'warning' : 'default'"
+              plain
+              @click="openQuickNotesModal(s)"
+              title="Ghi chép chi tiết"
+            >
+              <el-icon><Notebook /></el-icon>
+            </el-button>
+            <el-button size="small" circle @click="openEditModal(s)" title="Chỉnh sửa">
               <el-icon><Edit /></el-icon>
             </el-button>
-            <el-button size="small" circle type="danger" plain @click="deleteSession(s)">
+            <el-button size="small" circle type="danger" plain @click="deleteSession(s)" title="Xóa phiên học">
               <el-icon><Delete /></el-icon>
             </el-button>
           </div>
@@ -241,7 +257,7 @@
           <el-input
             v-model="sessionForm.notes"
             type="textarea"
-            :autosize="{ minRows: 2, maxRows: 6 }"
+            :autosize="{ minRows: 4, maxRows: 14 }"
             placeholder="Những bài học, câu hỏi hoặc ý tưởng phát sinh trong buổi học..."
           />
         </el-form-item>
@@ -252,6 +268,44 @@
           <el-button @click="showSessionDialog = false">Hủy</el-button>
           <el-button type="primary" :loading="savingSession" @click="saveSession">
             {{ isEditMode ? 'Lưu thay đổi' : 'Lưu phiên học' }}
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- Quick Session Notes Dialog -->
+    <el-dialog
+      v-model="showNotesDialog"
+      :title="`📝 Ghi chép phiên học: ${selectedSessionForNotes?.title || ''}`"
+      width="680px"
+      destroy-on-close
+      class="session-notes-dialog"
+    >
+      <div v-if="selectedSessionForNotes" class="session-notes-content">
+        <div class="notes-meta-bar">
+          <span>📅 {{ selectedSessionForNotes.learningDate }}</span>
+          <span>⏱️ {{ selectedSessionForNotes.durationMinutes }} phút</span>
+          <span v-if="selectedSessionForNotes.courseTitle">🎓 {{ selectedSessionForNotes.courseTitle }}</span>
+          <span v-if="selectedSessionForNotes.bookTitle">📖 {{ selectedSessionForNotes.bookTitle }}</span>
+          <span v-if="selectedSessionForNotes.skillName">🎯 {{ selectedSessionForNotes.skillName }}</span>
+        </div>
+        <el-input
+          v-model="sessionNotesText"
+          type="textarea"
+          :autosize="{ minRows: 8, maxRows: 22 }"
+          placeholder="Ghi lại kiến thức chi tiết, bài học rút ra, mã nguồn hoặc thắc mắc từ buổi học..."
+          class="notes-textarea"
+        />
+        <div class="notes-char-count">
+          <span>{{ sessionNotesText ? sessionNotesText.length : 0 }} ký tự</span>
+          <span>Hỗ trợ ghi chép nội dung dài</span>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showNotesDialog = false">Đóng</el-button>
+          <el-button type="primary" :loading="savingNotes" @click="saveSessionNotes">
+            Lưu ghi chú
           </el-button>
         </span>
       </template>
@@ -271,9 +325,9 @@ import {
   Plus,
   Search,
   Calendar,
-  Document,
   Edit,
-  Delete
+  Delete,
+  Notebook
 } from '@element-plus/icons-vue'
 import { learningApi } from '@/api/learningApi'
 import type {
@@ -304,6 +358,11 @@ const showSessionDialog = ref(false)
 const isEditMode = ref(false)
 const editingSessionId = ref<string | null>(null)
 const savingSession = ref(false)
+
+const showNotesDialog = ref(false)
+const selectedSessionForNotes = ref<LearningSession | null>(null)
+const sessionNotesText = ref('')
+const savingNotes = ref(false)
 
 const getTodayString = () => new Date().toISOString().split('T')[0]
 
@@ -446,6 +505,33 @@ const deleteSession = async (s: LearningSession) => {
     await loadSessions()
   } catch {
     // User cancelled
+  }
+}
+
+const openQuickNotesModal = (s: LearningSession) => {
+  selectedSessionForNotes.value = s
+  sessionNotesText.value = s.notes || ''
+  showNotesDialog.value = true
+}
+
+const saveSessionNotes = async () => {
+  if (!selectedSessionForNotes.value) return
+  savingNotes.value = true
+  try {
+    const updated = await learningApi.updateSessionNotes(
+      selectedSessionForNotes.value.id,
+      sessionNotesText.value
+    )
+    selectedSessionForNotes.value.notes = updated.notes
+    const found = sessions.value.find(s => s.id === updated.id)
+    if (found) found.notes = updated.notes
+    ElMessage.success('Đã lưu ghi chú phiên học!')
+    showNotesDialog.value = false
+  } catch (err: any) {
+    console.error('Failed to save session notes', err)
+    ElMessage.error(err.response?.data?.message || 'Lỗi khi lưu ghi chú')
+  } finally {
+    savingNotes.value = false
   }
 }
 
@@ -610,14 +696,29 @@ onMounted(() => {
 
           .session-notes-box {
             display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: var(--app-text-muted, #64748b);
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 12.5px;
+            color: var(--app-text, #334155);
             background: var(--app-bg-secondary, #f8fafc);
-            padding: 4px 8px;
-            border-radius: 4px;
-            width: fit-content;
+            border: 1px dashed var(--app-card-border, #cbd5e1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            max-width: 100%;
+            margin-top: 4px;
+
+            &:hover {
+              border-color: #f59e0b;
+              background: rgba(245, 158, 11, 0.04);
+            }
+
+            .notes-text-span {
+              white-space: pre-wrap;
+              line-height: 1.5;
+              word-break: break-word;
+            }
           }
         }
       }
@@ -633,6 +734,37 @@ onMounted(() => {
     margin-top: 24px;
     display: flex;
     justify-content: center;
+  }
+}
+
+.session-notes-dialog {
+  .notes-meta-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--app-text-muted, #64748b);
+    padding: 8px 12px;
+    background: var(--app-bg-secondary, #f8fafc);
+    border-radius: 8px;
+    margin-bottom: 14px;
+  }
+
+  .notes-textarea textarea {
+    font-family: inherit;
+    font-size: 13.5px;
+    line-height: 1.6;
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  .notes-char-count {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--app-text-muted, #94a3b8);
+    margin-top: 6px;
+    padding: 0 4px;
   }
 }
 

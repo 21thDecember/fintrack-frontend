@@ -102,6 +102,12 @@ const routes: RouteRecordRaw[] = [
             name: 'LearningSessions',
             component: () => import('@/views/learning/LearningSessionsView.vue'),
             meta: { title: 'Lịch sử học' }
+          },
+          {
+            path: 'notes',
+            name: 'LearningNotes',
+            component: () => import('@/views/learning/StudyNotesView.vue'),
+            meta: { title: 'Sổ tay ghi chú' }
           }
         ]
       },

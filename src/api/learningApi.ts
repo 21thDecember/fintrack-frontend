@@ -61,6 +61,11 @@ export const learningApi = {
     return res.data.data
   },
 
+  updateCourseNotes: async (id: string, notes: string): Promise<Course> => {
+    const res = await apiClient.patch<ApiResponse<Course>>(`/learning/courses/${id}/notes`, { notes })
+    return res.data.data
+  },
+
   deleteCourse: async (id: string): Promise<void> => {
     await apiClient.delete(`/learning/courses/${id}`)
   },
@@ -105,6 +110,11 @@ export const learningApi = {
       currentPage,
       totalPages
     })
+    return res.data.data
+  },
+
+  updateBookNotes: async (id: string, notes: string): Promise<Book> => {
+    const res = await apiClient.patch<ApiResponse<Book>>(`/learning/books/${id}/notes`, { notes })
     return res.data.data
   },
 
@@ -185,6 +195,11 @@ export const learningApi = {
 
   updateSession: async (id: string, data: LearningSessionRequest): Promise<LearningSession> => {
     const res = await apiClient.put<ApiResponse<LearningSession>>(`/learning/sessions/${id}`, data)
+    return res.data.data
+  },
+
+  updateSessionNotes: async (id: string, notes: string): Promise<LearningSession> => {
+    const res = await apiClient.patch<ApiResponse<LearningSession>>(`/learning/sessions/${id}/notes`, { notes })
     return res.data.data
   },
 
