@@ -18,7 +18,7 @@
           <el-form-item label="Tên đăng nhập" prop="username">
             <el-input
               v-model="form.username"
-              placeholder="admin"
+              placeholder="Nhập tên đăng nhập"
               :prefix-icon="User"
               size="large"
             />
@@ -50,15 +50,6 @@
             Đăng nhập ngay
           </el-button>
         </el-form>
-
-        <div class="demo-hint">
-          <p class="hint-title">Tài khoản trải nghiệm mẫu:</p>
-          <div class="hint-credentials" @click="fillDemo">
-            <span>Tên đăng nhập: <strong>admin</strong></span>
-            <span>Mật khẩu: <strong>admin123</strong></span>
-            <el-button text type="primary" size="small">Bấm để điền mẫu</el-button>
-          </div>
-        </div>
       </el-card>
 
       <footer class="login-footer">
@@ -78,19 +69,14 @@ const authStore = useAuthStore()
 const loginFormRef = ref<FormInstance>()
 
 const form = reactive({
-  username: 'admin',
-  password: 'admin123',
+  username: '',
+  password: '',
   rememberMe: true
 })
 
 const rules: FormRules = {
   username: [{ required: true, message: 'Vui lòng nhập tên đăng nhập', trigger: 'blur' }],
   password: [{ required: true, message: 'Vui lòng nhập mật khẩu', trigger: 'blur' }]
-}
-
-function fillDemo() {
-  form.username = 'admin'
-  form.password = 'admin123'
 }
 
 async function handleLogin() {
@@ -179,28 +165,6 @@ async function handleLogin() {
     font-weight: 600;
     font-size: 1rem;
     border-radius: 10px !important;
-  }
-
-  .demo-hint {
-    margin-top: 24px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    background-color: var(--el-table-header-bg-color);
-    border: 1px dashed var(--app-card-border);
-    font-size: 0.8125rem;
-
-    .hint-title {
-      color: var(--app-text-muted);
-      margin-bottom: 6px;
-      font-weight: 500;
-    }
-
-    .hint-credentials {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      cursor: pointer;
-    }
   }
 
   .login-footer {
