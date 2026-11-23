@@ -268,7 +268,7 @@
                 <td class="col-habit">
                   <div class="matrix-habit-name">
                     <span>{{ h.name }}</span>
-                    <span v-if="!h.isActive" class="matrix-paused-tag">Tạm dừng</span>
+                    <span v-if="!isHabitActive(h)" class="matrix-paused-tag">Tạm dừng</span>
                   </div>
                   <span class="matrix-habit-sub">{{ h.frequency === 'DAILY' ? 'Hàng ngày' : 'Hàng tuần' }}</span>
                 </td>
@@ -323,7 +323,7 @@
               <span class="freq-tag" :class="habit.frequency.toLowerCase()">
                 {{ habit.frequency === 'DAILY' ? 'Hàng ngày' : 'Hàng tuần' }}
               </span>
-              <span v-if="!habit.isActive" class="freq-tag paused">
+              <span v-if="!isHabitActive(habit)" class="freq-tag paused">
                 Tạm dừng
               </span>
             </div>
@@ -596,6 +596,13 @@ function openCreateModal() {
   isModalOpen.value = true
 }
 
+function isHabitActive(h: any): boolean {
+  if (h == null) return false
+  if (h.isActive !== undefined && h.isActive !== null) return Boolean(h.isActive)
+  if (h.active !== undefined && h.active !== null) return Boolean(h.active)
+  return true
+}
+
 function openEditModal(habit: Habit) {
   isEditMode.value = true
   currentHabitId.value = habit.id
@@ -608,7 +615,7 @@ function openEditModal(habit: Habit) {
     startDate: habit.startDate,
     endDate: habit.endDate,
     goalId: habit.goalId,
-    isActive: habit.isActive
+    isActive: isHabitActive(habit)
   })
   isModalOpen.value = true
 }
@@ -668,14 +675,20 @@ const currentWeekDates = computed(() => {
 
   const dayNames = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật']
   const dayShorts = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+  const dayEnList = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
 
   const result = []
   for (let i = 0; i < 7; i++) {
     const cur = new Date(mon)
     cur.setDate(mon.getDate() + i)
     const dateStr = formatDateIso(cur)
+    const dayEn = dayEnList[i]
     const doneForDay = habitStore.weekCheckins.filter(c => c.completionDate === dateStr && (c.count ?? 0) > 0).length
-    const totalActive = habitStore.habits.filter(h => h.isActive).length
+    const scheduledForDay = habitStore.habits.filter(h => {
+      if (!isHabitActive(h)) return false
+      const days = (h.activeDays && h.activeDays.length > 0) ? h.activeDays : dayEnList
+      return days.includes(dayEn)
+    }).length
 
     result.push({
       dateStr,
@@ -685,7 +698,7 @@ const currentWeekDates = computed(() => {
       isToday: dateStr === todayDateStr,
       isSelected: dateStr === selectedDate.value,
       doneCount: doneForDay,
-      totalCount: totalActive
+      totalCount: scheduledForDay
     })
   }
   return result
