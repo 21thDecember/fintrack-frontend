@@ -201,6 +201,45 @@
           </router-link>
         </div>
       </div>
+
+      <!-- Card 5: Learning & Skills -->
+      <div class="daily-focus-card">
+        <div class="card-body">
+          <div class="card-head">
+            <span class="card-title">
+              <span class="emoji">📚</span> Học tập & Kỹ năng
+            </span>
+            <router-link to="/learning" class="view-link blue">
+              Xem tất cả →
+            </router-link>
+          </div>
+
+          <div v-if="!learningDashboard || learningDashboard.learningTimeTodayMinutes === 0" class="empty-note">
+            💡 Chưa ghi nhận giờ học hôm nay.
+            <div style="margin-top: 6px;">
+              <router-link to="/learning/sessions">
+                <el-button type="success" size="small" round>Ghi phiên học</el-button>
+              </router-link>
+            </div>
+          </div>
+          <div v-else class="journal-preview-box">
+            <div class="today-mood-row">
+              <span class="mood-em">⏱️</span>
+              <span class="mood-lb">Hôm nay: {{ learningDashboard.learningTimeTodayMinutes }} phút</span>
+            </div>
+            <p class="journal-title-p">
+              {{ learningDashboard.activeCoursesCount }} khóa học • {{ learningDashboard.readingBooksCount }} sách đang đọc
+            </p>
+          </div>
+        </div>
+
+        <div class="card-foot">
+          <span>{{ learningDashboard?.activeSkillsCount || 0 }} kỹ năng rèn luyện</span>
+          <router-link to="/learning" class="foot-highlight blue">
+            Vào học →
+          </router-link>
+        </div>
+      </div>
     </div>
 
     <!-- Row 1: Summary Assets Cards (4 Cards) -->
@@ -525,7 +564,9 @@ import { useGoalStore } from '@/stores/goal'
 import { useResponsive } from '@/composables/useResponsive'
 import { dashboardApi } from '@/api/dashboardApi'
 import { journalApi } from '@/api/journalApi'
+import { learningApi } from '@/api/learningApi'
 import type { DailyJournal } from '@/types/journal'
+import type { LearningDashboard } from '@/types/learning'
 import { MOOD_CONFIG } from '@/types/mood'
 import type { DashboardData } from '@/types/dashboard'
 import type { Debt } from '@/types/debt'
@@ -630,6 +671,16 @@ async function loadTodayJournal() {
   }
 }
 
+const learningDashboard = ref<LearningDashboard | null>(null)
+
+async function loadLearningDashboard() {
+  try {
+    learningDashboard.value = await learningApi.getDashboard()
+  } catch (err) {
+    console.error('Failed to load learning dashboard', err)
+  }
+}
+
 onMounted(() => {
   fetchDashboard()
   debtStore.fetchPersonSummaries()
@@ -640,6 +691,7 @@ onMounted(() => {
   goalStore.fetchGoals()
   goalStore.fetchStatistics()
   loadTodayJournal()
+  loadLearningDashboard()
 })
 </script>
 
@@ -654,7 +706,7 @@ onMounted(() => {
 
   .lifeos-daily-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     gap: 16px;
 
     @media (max-width: 1200px) {
@@ -714,6 +766,7 @@ onMounted(() => {
             &.amber { color: #F59E0B; }
             &.indigo { color: #6366F1; }
             &.purple { color: #8B5CF6; }
+            &.blue { color: #0284c7; }
 
             &:hover {
               text-decoration: underline;
@@ -923,6 +976,7 @@ onMounted(() => {
           &.amber { color: #F59E0B; }
           &.indigo { color: #6366F1; }
           &.purple { color: #8B5CF6; text-decoration: none; }
+          &.blue { color: #0284c7; text-decoration: none; }
         }
       }
     }

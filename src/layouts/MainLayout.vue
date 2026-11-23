@@ -457,7 +457,8 @@ import {
   SwitchButton,
   ArrowDown,
   Menu,
-  EditPen
+  EditPen,
+  Reading
 } from '@element-plus/icons-vue'
 import { useResponsive } from '@/composables/useResponsive'
 import { useTheme } from '@/composables/useTheme'
@@ -484,7 +485,8 @@ const lifeosItems = [
   { path: '/tasks', label: 'Công việc', icon: Checked },
   { path: '/habits', label: 'Thói quen', icon: Timer },
   { path: '/goals', label: 'Mục tiêu', icon: Trophy },
-  { path: '/journals', label: 'Nhật ký & Review', icon: EditPen }
+  { path: '/journals', label: 'Nhật ký & Review', icon: EditPen },
+  { path: '/learning', label: 'Học tập & Kỹ năng', icon: Reading }
 ]
 
 // Submenu Items for Finance Module
@@ -518,7 +520,8 @@ function isGroupActive(groupId: string): boolean {
     return route.path.startsWith('/tasks') ||
            route.path.startsWith('/habits') ||
            route.path.startsWith('/goals') ||
-           route.path.startsWith('/journals')
+           route.path.startsWith('/journals') ||
+           route.path.startsWith('/learning')
   }
   if (groupId === 'finance') {
     return route.path.startsWith('/transactions') ||

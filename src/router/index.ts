@@ -69,6 +69,43 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Tổng kết & Đánh giá Tuần' }
       },
       {
+        path: 'learning',
+        name: 'Learning',
+        redirect: '/learning/overview',
+        children: [
+          {
+            path: 'overview',
+            name: 'LearningOverview',
+            component: () => import('@/views/learning/LearningOverviewView.vue'),
+            meta: { title: 'Học tập & Kỹ năng' }
+          },
+          {
+            path: 'courses',
+            name: 'LearningCourses',
+            component: () => import('@/views/learning/CoursesView.vue'),
+            meta: { title: 'Khóa học' }
+          },
+          {
+            path: 'books',
+            name: 'LearningBooks',
+            component: () => import('@/views/learning/BooksView.vue'),
+            meta: { title: 'Tủ sách' }
+          },
+          {
+            path: 'skills',
+            name: 'LearningSkills',
+            component: () => import('@/views/learning/SkillsView.vue'),
+            meta: { title: 'Kỹ năng' }
+          },
+          {
+            path: 'sessions',
+            name: 'LearningSessions',
+            component: () => import('@/views/learning/LearningSessionsView.vue'),
+            meta: { title: 'Lịch sử học' }
+          }
+        ]
+      },
+      {
         path: 'transactions',
         name: 'Transactions',
         component: () => import('@/views/transactions/TransactionListView.vue'),
