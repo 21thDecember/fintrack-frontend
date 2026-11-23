@@ -38,8 +38,8 @@
 
     <!-- LifeOS Daily Focus: Tasks, Habits & Goals -->
     <div class="lifeos-daily-grid">
-      <!-- Card 1: Today's Tasks -->
-      <div class="daily-focus-card">
+      <!-- Card 1: Today's Tasks (Large - 50% width on desktop) -->
+      <div class="daily-focus-card large">
         <div class="card-body">
           <div class="card-head">
             <span class="card-title">
@@ -55,20 +55,24 @@
           </div>
           <div v-else class="item-list">
             <div
-              v-for="task in todayPendingTasks.slice(0, 3)"
+              v-for="task in todayPendingTasks.slice(0, 4)"
               :key="task.id"
-              class="focus-item"
+              class="focus-item task-item"
             >
               <div class="item-left">
                 <button
                   class="mini-check"
+                  :title="'Đánh dấu hoàn thành: ' + task.title"
                   @click="taskStore.updateStatus(task.id, 'COMPLETED')"
                 />
-                <span class="item-name" :class="{ overdue: task.isOverdue }">
+                <span class="item-name" :class="{ overdue: task.isOverdue }" :title="task.title">
                   {{ task.title }}
                 </span>
               </div>
-              <span v-if="task.isOverdue" class="overdue-tag">Quá hạn</span>
+              <div class="item-right">
+                <span v-if="task.priority === 'HIGH'" class="priority-dot high" title="Ưu tiên cao" />
+                <span v-if="task.isOverdue" class="overdue-tag">Quá hạn</span>
+              </div>
             </div>
           </div>
         </div>
@@ -79,8 +83,8 @@
         </div>
       </div>
 
-      <!-- Card 2: Today's Habits -->
-      <div class="daily-focus-card">
+      <!-- Card 2: Today's Habits (Large - 50% width on desktop) -->
+      <div class="daily-focus-card large">
         <div class="card-body">
           <div class="card-head">
             <span class="card-title">
@@ -96,20 +100,26 @@
           </div>
           <div v-else class="item-list">
             <div
-              v-for="habit in habitStore.todayHabits.slice(0, 3)"
+              v-for="habit in habitStore.todayHabits.slice(0, 4)"
               :key="habit.id"
-              class="focus-item"
+              class="focus-item habit-item"
             >
-              <span class="item-name" :class="{ completed: isHabitDone(habit) }">
-                {{ habit.name }}
-              </span>
+              <div class="item-left">
+                <span class="item-name" :class="{ completed: isHabitDone(habit) }" :title="habit.name">
+                  {{ habit.name }}
+                </span>
+                <span v-if="habit.currentStreak > 0" class="habit-streak-badge" title="Chuỗi streak">
+                  🔥 {{ habit.currentStreak }}
+                </span>
+              </div>
               <button
                 class="mini-checkin-btn"
                 :class="{ done: isHabitDone(habit) }"
                 :title="isHabitDone(habit) ? 'Đã điểm danh hôm nay (Nhấn để hủy điểm danh)' : 'Nhấn để điểm danh'"
                 @click="toggleHabitCheckin(habit)"
               >
-                {{ isHabitDone(habit) ? '✓ Xong' : '+1 Điểm danh' }}
+                <el-icon v-if="isHabitDone(habit)" style="margin-right: 3px;"><Check /></el-icon>
+                {{ isHabitDone(habit) ? 'Đã xong' : '+1 Điểm danh' }}
               </button>
             </div>
           </div>
@@ -121,8 +131,8 @@
         </div>
       </div>
 
-      <!-- Card 3: Goals In Progress -->
-      <div class="daily-focus-card">
+      <!-- Card 3: Goals In Progress (Medium - 33.3% width on desktop) -->
+      <div class="daily-focus-card medium">
         <div class="card-body">
           <div class="card-head">
             <span class="card-title">
@@ -143,12 +153,12 @@
               class="mini-goal-item"
             >
               <div class="goal-top">
-                <router-link :to="'/goals/' + goal.id" class="goal-title">
+                <router-link :to="'/goals/' + goal.id" class="goal-title" :title="goal.title">
                   {{ goal.title }}
                 </router-link>
                 <span class="goal-pct">{{ goal.progressPercentage }}%</span>
               </div>
-              <el-progress :percentage="goal.progressPercentage" :show-text="false" :stroke-width="5" color="#6366F1" />
+              <el-progress :percentage="goal.progressPercentage" :show-text="false" :stroke-width="6" color="#6366F1" />
             </div>
           </div>
         </div>
@@ -159,8 +169,8 @@
         </div>
       </div>
 
-      <!-- Card 4: Today's Journal & Mood -->
-      <div class="daily-focus-card">
+      <!-- Card 4: Today's Journal & Mood (Medium - 33.3% width on desktop) -->
+      <div class="daily-focus-card medium">
         <div class="card-body">
           <div class="card-head">
             <span class="card-title">
@@ -173,7 +183,7 @@
 
           <div v-if="!todayJournal" class="empty-note">
             🌿 Bạn chưa ghi lại tâm trạng & nhật ký hôm nay.
-            <div style="margin-top: 6px;">
+            <div style="margin-top: 8px;">
               <router-link to="/journals/daily">
                 <el-button type="primary" size="small" round>Viết nhật ký</el-button>
               </router-link>
@@ -188,8 +198,8 @@
             <p v-if="todayJournal?.title" class="journal-title-p">
               {{ todayJournal.title }}
             </p>
-            <p v-else-if="todayJournal?.content" class="journal-snippet-p">
-              {{ todayJournal.content.substring(0, 60) }}...
+            <p v-if="todayJournal?.content" class="journal-snippet-p">
+              {{ todayJournal.content }}
             </p>
           </div>
         </div>
@@ -202,8 +212,8 @@
         </div>
       </div>
 
-      <!-- Card 5: Learning & Skills -->
-      <div class="daily-focus-card">
+      <!-- Card 5: Learning & Skills (Medium - 33.3% width on desktop) -->
+      <div class="daily-focus-card medium">
         <div class="card-body">
           <div class="card-head">
             <span class="card-title">
@@ -216,20 +226,21 @@
 
           <div v-if="!learningDashboard || learningDashboard.learningTimeTodayMinutes === 0" class="empty-note">
             💡 Chưa ghi nhận giờ học hôm nay.
-            <div style="margin-top: 6px;">
+            <div style="margin-top: 8px;">
               <router-link to="/learning/sessions">
                 <el-button type="success" size="small" round>Ghi phiên học</el-button>
               </router-link>
             </div>
           </div>
-          <div v-else class="journal-preview-box">
+          <div v-else class="learning-preview-box">
             <div class="today-mood-row">
               <span class="mood-em">⏱️</span>
-              <span class="mood-lb">Hôm nay: {{ learningDashboard.learningTimeTodayMinutes }} phút</span>
+              <span class="mood-lb">Hôm nay: <strong>{{ learningDashboard.learningTimeTodayMinutes }} phút</strong></span>
             </div>
-            <p class="journal-title-p">
-              {{ learningDashboard.activeCoursesCount }} khóa học • {{ learningDashboard.readingBooksCount }} sách đang đọc
-            </p>
+            <div class="learning-pills-row">
+              <span class="learn-badge courses">🎓 {{ learningDashboard.activeCoursesCount }} khóa học</span>
+              <span class="learn-badge books">📖 {{ learningDashboard.readingBooksCount }} sách đọc</span>
+            </div>
           </div>
         </div>
 
@@ -242,91 +253,134 @@
       </div>
     </div>
 
-    <!-- Row 1: Summary Assets Cards (4 Cards) -->
-    <div class="stats-grid">
-      <StatCard
-        title="Tổng số dư khả dụng"
-        :value="dashboardData?.summary?.totalBalance || 0"
-        subtitle="Trên tất cả tài khoản"
-        :icon="Wallet"
-        icon-bg="rgba(16, 185, 129, 0.12)"
-        icon-color="#10B981"
-      />
-
-      <StatCard
-        title="Tổng phải thu (Người nợ)"
-        :value="dashboardData?.summary?.totalReceivable || 0"
-        subtitle="Cần theo dõi thu hồi"
-        :icon="Money"
-        icon-bg="rgba(59, 130, 246, 0.12)"
-        icon-color="#3B82F6"
-      />
-
-      <StatCard
-        title="Tổng phải trả (Mình nợ)"
-        :value="dashboardData?.summary?.totalPayable || 0"
-        subtitle="Khoản nợ chưa tất toán"
-        :icon="CreditCard"
-        icon-bg="rgba(239, 68, 68, 0.12)"
-        icon-color="#EF4444"
-      />
-
-      <StatCard
-        title="Tài sản ròng (Net Worth)"
-        :value="dashboardData?.summary?.netWorth || 0"
-        subtitle="Số dư + Phải thu - Phải trả"
-        :icon="Coin"
-        icon-bg="rgba(139, 92, 246, 0.12)"
-        icon-color="#8B5CF6"
-      />
-    </div>
-
-    <!-- Row 2: Cash Flow Cards (3 Cards) -->
-    <div class="cashflow-grid">
-      <el-card class="flow-card income">
-        <div class="flow-card-content">
-          <div class="flow-icon-box income-box">
-            <el-icon :size="20"><Bottom /></el-icon>
+    <!-- Consolidated Financial Overview (Merged from 7 cards into 2 comprehensive cards) -->
+    <div class="finance-overview-grid">
+      <!-- Card 1: Assets & Net Worth -->
+      <div class="finance-card assets-card">
+        <div class="finance-card-head">
+          <div class="head-left">
+            <div class="icon-bubble purple">
+              <el-icon :size="20"><Coin /></el-icon>
+            </div>
+            <div class="head-info">
+              <h3 class="finance-title">Tài sản & Công nợ</h3>
+              <span class="finance-sub">Tích lũy tổng thể hiện tại</span>
+            </div>
           </div>
-          <div class="flow-info">
-            <span class="flow-label">Tổng thu nhập</span>
-            <strong class="flow-value text-income">
-              {{ (dashboardData?.summary?.totalIncome || 0) > 0 ? '+' : '' }}{{ formatCurrency(dashboardData?.summary?.totalIncome || 0) }}
-            </strong>
+          <router-link to="/accounts" class="quick-link">
+            Quản lý tài khoản →
+          </router-link>
+        </div>
+
+        <!-- Net Worth Spotlight -->
+        <div class="hero-spotlight">
+          <span class="hero-label">Tài sản ròng (Net Worth)</span>
+          <div class="hero-value-wrap">
+            <span class="hero-value purple">{{ formatCurrency(dashboardData?.summary?.netWorth || 0) }}</span>
+          </div>
+          <span class="hero-formula">Số dư khả dụng + Phải thu - Phải trả</span>
+        </div>
+
+        <!-- Sub metrics breakdown: Balance, Receivable, Payable -->
+        <div class="sub-metrics-row assets-breakdown">
+          <div class="metric-pill">
+            <div class="pill-head">
+              <span class="dot-indicator green"></span>
+              <span class="pill-label">Số dư khả dụng</span>
+            </div>
+            <span class="pill-value green">{{ formatCurrency(dashboardData?.summary?.totalBalance || 0) }}</span>
+            <span class="pill-caption">Trên các tài khoản</span>
+          </div>
+
+          <div class="metric-pill">
+            <div class="pill-head">
+              <span class="dot-indicator blue"></span>
+              <span class="pill-label">Tổng phải thu</span>
+            </div>
+            <span class="pill-value blue">+{{ formatCurrency(dashboardData?.summary?.totalReceivable || 0) }}</span>
+            <span class="pill-caption">Người nợ cần thu</span>
+          </div>
+
+          <div class="metric-pill">
+            <div class="pill-head">
+              <span class="dot-indicator red"></span>
+              <span class="pill-label">Tổng phải trả</span>
+            </div>
+            <span class="pill-value red">{{ formatCurrency(dashboardData?.summary?.totalPayable || 0) }}</span>
+            <span class="pill-caption">Khoản nợ chưa trả</span>
           </div>
         </div>
-      </el-card>
+      </div>
 
-      <el-card class="flow-card expense">
-        <div class="flow-card-content">
-          <div class="flow-icon-box expense-box">
-            <el-icon :size="20"><Top /></el-icon>
+      <!-- Card 2: Cash Flow & Surplus -->
+      <div class="finance-card cashflow-card">
+        <div class="finance-card-head">
+          <div class="head-left">
+            <div class="icon-bubble emerald">
+              <el-icon :size="20"><TrendCharts /></el-icon>
+            </div>
+            <div class="head-info">
+              <div class="title-with-badge">
+                <h3 class="finance-title">Dòng tiền & Thặng dư</h3>
+                <span class="time-range-badge">{{ timeRangeLabel }}</span>
+              </div>
+              <span class="finance-sub">Thu nhập và chi tiêu theo kỳ chọn</span>
+            </div>
           </div>
-          <div class="flow-info">
-            <span class="flow-label">Tổng chi tiêu</span>
-            <strong class="flow-value text-expense">
-              {{ (dashboardData?.summary?.totalExpense || 0) > 0 ? '-' : '' }}{{ formatCurrency(dashboardData?.summary?.totalExpense || 0) }}
-            </strong>
-          </div>
+          <router-link to="/transactions" class="quick-link">
+            Sổ giao dịch →
+          </router-link>
         </div>
-      </el-card>
 
-      <el-card class="flow-card diff">
-        <div class="flow-card-content">
-          <div class="flow-icon-box diff-box">
-            <el-icon :size="20"><TrendCharts /></el-icon>
-          </div>
-          <div class="flow-info">
-            <span class="flow-label">Thặng dư / Chênh lệch</span>
-            <strong
-              class="flow-value"
-              :class="(dashboardData?.summary?.balanceDiff || 0) > 0 ? 'text-income' : (dashboardData?.summary?.balanceDiff || 0) < 0 ? 'text-expense' : ''"
+        <!-- Surplus Spotlight -->
+        <div class="hero-spotlight">
+          <span class="hero-label">Thặng dư / Chênh lệch kỳ này</span>
+          <div class="hero-value-wrap">
+            <span
+              class="hero-value"
+              :class="(dashboardData?.summary?.balanceDiff || 0) > 0 ? 'green' : (dashboardData?.summary?.balanceDiff || 0) < 0 ? 'red' : ''"
             >
               {{ (dashboardData?.summary?.balanceDiff || 0) > 0 ? '+' : '' }}{{ formatCurrency(dashboardData?.summary?.balanceDiff || 0) }}
-            </strong>
+            </span>
+          </div>
+          <span class="hero-formula">Thu nhập trừ chi tiêu trong kỳ</span>
+        </div>
+
+        <!-- Sub metrics breakdown: Income & Expense -->
+        <div class="sub-metrics-row cashflow-breakdown">
+          <div class="metric-pill">
+            <div class="pill-head">
+              <el-icon :size="14" class="arrow-icon green"><Bottom /></el-icon>
+              <span class="pill-label">Tổng thu nhập</span>
+            </div>
+            <span class="pill-value green">+{{ formatCurrency(dashboardData?.summary?.totalIncome || 0) }}</span>
+            <span class="pill-caption">Dòng tiền vào</span>
+          </div>
+
+          <div class="metric-pill">
+            <div class="pill-head">
+              <el-icon :size="14" class="arrow-icon red"><Top /></el-icon>
+              <span class="pill-label">Tổng chi tiêu</span>
+            </div>
+            <span class="pill-value red">-{{ formatCurrency(dashboardData?.summary?.totalExpense || 0) }}</span>
+            <span class="pill-caption">Dòng tiền ra</span>
           </div>
         </div>
-      </el-card>
+
+        <!-- Spending Ratio Bar -->
+        <div class="spending-ratio-box">
+          <div class="ratio-header">
+            <span>Tỷ lệ chi tiêu / thu nhập</span>
+            <strong :style="{ color: spendingRatioColor }">{{ spendingRatio }}%</strong>
+          </div>
+          <el-progress
+            :percentage="spendingRatio"
+            :show-text="false"
+            :stroke-width="6"
+            :color="spendingRatioColor"
+          />
+        </div>
+      </div>
     </div>
 
     <!-- Row 3: Charts (Income vs Expense & Category Pie) -->
@@ -544,9 +598,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  Wallet,
-  Money,
-  CreditCard,
   Coin,
   Top,
   Bottom,
@@ -554,7 +605,8 @@ import {
   Histogram,
   PieChart,
   Tickets,
-  Calendar
+  Calendar,
+  Check
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDebtStore } from '@/stores/debt'
@@ -572,7 +624,6 @@ import type { DashboardData } from '@/types/dashboard'
 import type { Debt } from '@/types/debt'
 import { formatCurrency } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
-import StatCard from '@/components/common/StatCard.vue'
 import AmountDisplay from '@/components/common/AmountDisplay.vue'
 import IncomeExpenseChart from '@/components/charts/IncomeExpenseChart.vue'
 import CategoryPieChart from '@/components/charts/CategoryPieChart.vue'
@@ -597,6 +648,30 @@ const selectedDebt = ref<Debt | null>(null)
 
 const todayPendingTasks = computed(() => {
   return taskStore.tasks.filter(t => t.status !== 'COMPLETED' && t.status !== 'CANCELLED')
+})
+
+const timeRangeLabel = computed(() => {
+  switch (selectedTimeRange.value) {
+    case 'today': return 'Hôm nay'
+    case 'thisWeek': return 'Tuần này'
+    case 'thisMonth': return 'Tháng này'
+    case 'lastMonth': return 'Tháng trước'
+    default: return 'Kỳ này'
+  }
+})
+
+const spendingRatio = computed(() => {
+  const inc = dashboardData.value?.summary?.totalIncome || 0
+  const exp = dashboardData.value?.summary?.totalExpense || 0
+  if (inc <= 0) return exp > 0 ? 100 : 0
+  return Math.min(Math.round((exp / inc) * 1000) / 10, 100)
+})
+
+const spendingRatioColor = computed(() => {
+  const ratio = spendingRatio.value
+  if (ratio <= 70) return '#10B981'
+  if (ratio <= 90) return '#F59E0B'
+  return '#EF4444'
 })
 
 async function fetchDashboard() {
@@ -706,29 +781,55 @@ onMounted(() => {
 
   .lifeos-daily-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    grid-template-columns: repeat(6, 1fr);
     gap: 16px;
 
-    @media (max-width: 1200px) {
+    @media (max-width: 1100px) {
       grid-template-columns: repeat(2, 1fr);
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 680px) {
       grid-template-columns: 1fr;
     }
 
     .daily-focus-card {
       background: var(--app-card-bg);
       border: 1px solid var(--app-card-border);
-      border-radius: 14px;
-      padding: 16px;
+      border-radius: 16px;
+      padding: 18px 20px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      gap: 12px;
+      gap: 14px;
       transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       will-change: transform;
+
+      &.large {
+        grid-column: span 3;
+        min-height: 230px;
+
+        @media (max-width: 1100px) {
+          grid-column: span 1;
+        }
+
+        @media (max-width: 680px) {
+          grid-column: span 1;
+        }
+      }
+
+      &.medium {
+        grid-column: span 2;
+        min-height: 210px;
+
+        @media (max-width: 1100px) {
+          grid-column: span 1;
+        }
+
+        @media (max-width: 680px) {
+          grid-column: span 1;
+        }
+      }
 
       &:hover {
         transform: translateY(-3px);
@@ -739,7 +840,7 @@ onMounted(() => {
       .card-body {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
 
         .card-head {
           display: flex;
@@ -747,20 +848,20 @@ onMounted(() => {
           justify-content: space-between;
 
           .card-title {
-            font-size: 0.9375rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--app-text);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
 
             .emoji {
-              font-size: 1rem;
+              font-size: 1.125rem;
             }
           }
 
           .view-link {
-            font-size: 0.75rem;
+            font-size: 0.8125rem;
             font-weight: 600;
             text-decoration: none;
             transition: opacity 0.2s;
@@ -781,59 +882,101 @@ onMounted(() => {
         .journal-preview-box {
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 8px;
           padding: 4px 0;
 
           .today-mood-row {
             display: flex;
             align-items: center;
-            gap: 6px;
-            .mood-em { font-size: 20px; line-height: 1; }
-            .mood-lb { font-size: 13px; font-weight: 700; color: var(--app-text); }
+            gap: 8px;
+            .mood-em { font-size: 22px; line-height: 1; }
+            .mood-lb { font-size: 14px; font-weight: 700; color: var(--app-text); }
             .energy-pill {
-              font-size: 11px;
-              background: rgba(245, 158, 11, 0.12);
+              font-size: 12px;
+              background: rgba(245, 158, 11, 0.14);
               color: #d97706;
-              padding: 1px 6px;
-              border-radius: 4px;
-              font-weight: 600;
+              padding: 2px 8px;
+              border-radius: 6px;
+              font-weight: 700;
             }
           }
           .journal-title-p {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             color: var(--app-text);
             margin: 0;
-            line-height: 1.3;
+            line-height: 1.4;
           }
           .journal-snippet-p {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--app-text-muted);
             margin: 0;
-            line-height: 1.3;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+        }
+
+        .learning-preview-box {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          padding: 4px 0;
+
+          .today-mood-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            .mood-em { font-size: 22px; line-height: 1; }
+            .mood-lb { font-size: 14px; color: var(--app-text); }
+          }
+
+          .learning-pills-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+
+            .learn-badge {
+              font-size: 0.75rem;
+              font-weight: 600;
+              padding: 4px 10px;
+              border-radius: 6px;
+
+              &.courses {
+                background: rgba(99, 102, 241, 0.1);
+                color: #6366F1;
+              }
+
+              &.books {
+                background: rgba(16, 185, 129, 0.1);
+                color: #10B981;
+              }
+            }
           }
         }
 
         .empty-note {
-          font-size: 0.8125rem;
+          font-size: 0.875rem;
           color: var(--app-text-muted);
-          padding: 14px 0;
+          padding: 16px 0;
           text-align: center;
         }
 
         .item-list {
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 8px;
 
           .focus-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
-            padding: 6px 8px;
-            border-radius: 8px;
-            font-size: 0.8125rem;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 10px;
             background: rgba(0, 0, 0, 0.02);
             transition: background-color 0.18s ease, transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -845,15 +988,15 @@ onMounted(() => {
             .item-left {
               display: flex;
               align-items: center;
-              gap: 8px;
+              gap: 10px;
               min-width: 0;
               flex: 1;
 
               .mini-check {
-                width: 16px;
-                height: 16px;
-                border-radius: 4px;
-                border: 1.5px solid var(--app-card-border);
+                width: 20px;
+                height: 20px;
+                border-radius: 6px;
+                border: 2px solid var(--app-card-border);
                 background: transparent;
                 cursor: pointer;
                 flex-shrink: 0;
@@ -861,15 +1004,18 @@ onMounted(() => {
 
                 &:hover {
                   border-color: #10B981;
-                  background: rgba(16, 185, 129, 0.1);
+                  background: rgba(16, 185, 129, 0.15);
+                  transform: scale(1.1);
                 }
 
                 &:active {
-                  transform: scale(0.85);
+                  transform: scale(0.9);
                 }
               }
 
               .item-name {
+                font-size: 0.875rem;
+                font-weight: 500;
                 color: var(--app-text);
                 white-space: nowrap;
                 overflow: hidden;
@@ -879,36 +1025,58 @@ onMounted(() => {
                   color: #EF4444;
                   font-weight: 600;
                 }
+
+                &.completed {
+                  text-decoration: line-through;
+                  color: var(--app-text-muted);
+                }
+              }
+
+              .habit-streak-badge {
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: #d97706;
+                background: rgba(245, 158, 11, 0.12);
+                padding: 2px 7px;
+                border-radius: 6px;
+                flex-shrink: 0;
               }
             }
 
-            .item-name {
-              color: var(--app-text);
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-
-              &.completed {
-                text-decoration: line-through;
-                color: var(--app-text-muted);
-              }
-            }
-
-            .overdue-tag {
-              font-size: 0.6875rem;
-              font-weight: 700;
-              color: #EF4444;
+            .item-right {
+              display: flex;
+              align-items: center;
+              gap: 6px;
               flex-shrink: 0;
+
+              .priority-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                &.high { background: #EF4444; }
+              }
+
+              .overdue-tag {
+                font-size: 0.6875rem;
+                font-weight: 700;
+                color: #EF4444;
+                background: rgba(239, 68, 68, 0.1);
+                padding: 2px 6px;
+                border-radius: 4px;
+              }
             }
 
             .mini-checkin-btn {
-              padding: 3px 10px;
-              border-radius: 6px;
-              font-size: 0.75rem;
+              padding: 5px 12px;
+              border-radius: 8px;
+              font-size: 0.8125rem;
               font-weight: 700;
               cursor: pointer;
               border: none;
               flex-shrink: 0;
+              display: flex;
+              align-items: center;
+              gap: 4px;
               transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
               background: rgba(245, 158, 11, 0.15);
               color: #D97706;
@@ -938,18 +1106,18 @@ onMounted(() => {
         .goal-list {
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 12px;
 
           .mini-goal-item {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
 
             .goal-top {
               display: flex;
               align-items: center;
               justify-content: space-between;
-              font-size: 0.8125rem;
+              font-size: 0.875rem;
 
               .goal-title {
                 font-weight: 600;
@@ -978,9 +1146,9 @@ onMounted(() => {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding-top: 10px;
+        padding-top: 12px;
         border-top: 1px solid var(--app-card-border);
-        font-size: 0.75rem;
+        font-size: 0.8125rem;
         color: var(--app-text-muted);
 
         .foot-highlight {
@@ -1030,93 +1198,242 @@ onMounted(() => {
     }
   }
 
-  // Row 1: 4 Cards Grid
-  .stats-grid {
+  // Consolidated Finance Overview (2 Cards)
+  .finance-overview-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    width: 100%;
-    min-width: 0;
-
-    @media (max-width: 1024px) {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-
-    @media (max-width: 640px) {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-    }
-  }
-
-  // Row 2: 3 Cards Grid
-  .cashflow-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
+    width: 100%;
 
-    @media (max-width: 768px) {
+    @media (max-width: 900px) {
       grid-template-columns: 1fr;
     }
 
-    .flow-card {
-      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      will-change: transform;
+    .finance-card {
+      background: var(--app-card-bg);
+      border: 1px solid var(--app-card-border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
 
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+        border-color: rgba(99, 102, 241, 0.35);
+      }
 
-        .flow-icon-box {
-          transform: scale(1.08);
+      .finance-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+
+        .head-left {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+
+          .icon-bubble {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+
+            &.purple {
+              background: rgba(99, 102, 241, 0.12);
+              color: #6366F1;
+            }
+
+            &.emerald {
+              background: rgba(16, 185, 129, 0.12);
+              color: #10B981;
+            }
+          }
+
+          .head-info {
+            display: flex;
+            flex-direction: column;
+
+            .title-with-badge {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            }
+
+            .finance-title {
+              font-size: 1.0625rem;
+              font-weight: 700;
+              color: var(--app-text);
+              margin: 0;
+            }
+
+            .time-range-badge {
+              padding: 2px 8px;
+              border-radius: 12px;
+              font-size: 0.6875rem;
+              font-weight: 700;
+              background: rgba(16, 185, 129, 0.15);
+              color: #059669;
+            }
+
+            .finance-sub {
+              font-size: 0.75rem;
+              color: var(--app-text-muted);
+              margin-top: 2px;
+            }
+          }
+        }
+
+        .quick-link {
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: #6366F1;
+          text-decoration: none;
+          transition: opacity 0.2s;
+          white-space: nowrap;
+
+          &:hover {
+            text-decoration: underline;
+            opacity: 0.85;
+          }
         }
       }
 
-      .flow-card-content {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-      }
-
-      .flow-icon-box {
-        width: 44px;
-        height: 44px;
+      .hero-spotlight {
+        background: var(--app-bg, #F9FAFB);
+        border: 1px solid var(--app-card-border);
         border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-
-        &.income-box {
-          background-color: rgba(16, 185, 129, 0.12);
-          color: #10B981;
-        }
-
-        &.expense-box {
-          background-color: rgba(239, 68, 68, 0.12);
-          color: #EF4444;
-        }
-
-        &.diff-box {
-          background-color: rgba(59, 130, 246, 0.12);
-          color: #3B82F6;
-        }
-      }
-
-      .flow-info {
+        padding: 14px 18px;
         display: flex;
         flex-direction: column;
+        gap: 4px;
 
-        .flow-label {
+        .hero-label {
           font-size: 0.8125rem;
+          font-weight: 600;
           color: var(--app-text-muted);
-          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
         }
 
-        .flow-value {
-          font-size: 1.25rem;
-          font-weight: 700;
-          margin-top: 2px;
+        .hero-value-wrap {
+          display: flex;
+          align-items: baseline;
+          gap: 6px;
+
+          .hero-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+
+            &.purple { color: #6366F1; }
+            &.green { color: #10B981; }
+            &.red { color: #EF4444; }
+          }
+        }
+
+        .hero-formula {
+          font-size: 0.75rem;
+          color: var(--app-text-muted);
+        }
+      }
+
+      .sub-metrics-row {
+        display: grid;
+        gap: 10px;
+
+        &.assets-breakdown {
+          grid-template-columns: repeat(3, 1fr);
+
+          @media (max-width: 540px) {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        &.cashflow-breakdown {
+          grid-template-columns: repeat(2, 1fr);
+
+          @media (max-width: 540px) {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .metric-pill {
+          background: var(--app-bg, #F9FAFB);
+          border: 1px solid var(--app-card-border);
+          border-radius: 10px;
+          padding: 10px 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+
+          .pill-head {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            .dot-indicator {
+              width: 8px;
+              height: 8px;
+              border-radius: 50%;
+
+              &.green { background: #10B981; }
+              &.blue { background: #3B82F6; }
+              &.red { background: #EF4444; }
+            }
+
+            .arrow-icon {
+              &.green { color: #10B981; }
+              &.red { color: #EF4444; }
+            }
+
+            .pill-label {
+              font-size: 0.75rem;
+              font-weight: 600;
+              color: var(--app-text-muted);
+            }
+          }
+
+          .pill-value {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-top: 2px;
+
+            &.green { color: #10B981; }
+            &.blue { color: #3B82F6; }
+            &.red { color: #EF4444; }
+          }
+
+          .pill-caption {
+            font-size: 0.6875rem;
+            color: var(--app-text-muted);
+          }
+        }
+      }
+
+      .spending-ratio-box {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding-top: 4px;
+
+        .ratio-header {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.75rem;
+          color: var(--app-text-muted);
+
+          strong {
+            font-weight: 700;
+          }
         }
       }
     }
