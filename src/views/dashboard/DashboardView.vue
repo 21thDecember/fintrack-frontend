@@ -440,13 +440,13 @@
             size="small"
             empty-text="Chưa có giao dịch gần đây"
           >
-            <el-table-column label="Ngày" width="130">
+            <el-table-column label="Ngày" width="105">
               <template #default="{ row }">
                 <span class="text-muted">{{ formatDate(row.transactionDate) }}</span>
               </template>
             </el-table-column>
 
-            <el-table-column label="Mô tả" min-width="180">
+            <el-table-column label="Mô tả" width="180" show-overflow-tooltip>
               <template #default="{ row }">
                 <div class="desc-col">
                   <span class="font-medium">{{ row.description || row.originalDescription }}</span>
@@ -462,12 +462,38 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="Danh mục" width="140">
+            <el-table-column label="Danh mục" width="150">
               <template #default="{ row }">
-                <el-tag v-if="row.category?.name" size="small" effect="light">
-                  {{ row.category.name }}
-                </el-tag>
-                <span v-else class="text-muted text-xs">—</span>
+                <el-select
+                  v-model="row.categoryId"
+                  placeholder="Chọn danh mục"
+                  size="small"
+                  filterable
+                  @change="(val: string) => handleQuickClassify(row.id, val)"
+                  class="category-select"
+                >
+                  <template #prefix>
+                    <span
+                      v-if="getCategoryColor(row.categoryId || row.category?.id)"
+                      class="cat-prefix-dot"
+                      :style="{ backgroundColor: getCategoryColor(row.categoryId || row.category?.id) }"
+                    ></span>
+                  </template>
+                  <el-option
+                    v-for="cat in categoryStore.categories"
+                    :key="cat.id"
+                    :label="cat.name"
+                    :value="cat.id"
+                  >
+                    <div class="cat-option-row">
+                      <span
+                        class="cat-color-dot"
+                        :style="{ backgroundColor: cat.color || '#94A3B8' }"
+                      ></span>
+                      <span>{{ cat.name }}</span>
+                    </div>
+                  </el-option>
+                </el-select>
               </template>
             </el-table-column>
 
@@ -477,7 +503,26 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="Số tiền" width="150" align="right">
+            <el-table-column label="Ghi chú thêm" min-width="160">
+              <template #default="{ row }">
+                <el-input
+                  v-model="row.note"
+                  placeholder="Thêm ghi chú..."
+                  size="small"
+                  clearable
+                  @focus="handleFocusNote(row)"
+                  @blur="handleSaveNote(row)"
+                  @keyup.enter="(e: any) => e.target.blur()"
+                  class="note-quick-input"
+                >
+                  <template #prefix>
+                    <el-icon class="text-muted"><EditPen /></el-icon>
+                  </template>
+                </el-input>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="Số tiền" width="135" align="right">
               <template #default="{ row }">
                 <AmountDisplay :amount="row.amount" :direction="row.direction" size="sm" />
               </template>
@@ -606,13 +651,16 @@ import {
   PieChart,
   Tickets,
   Calendar,
-  Check
+  Check,
+  EditPen
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDebtStore } from '@/stores/debt'
 import { useTaskStore } from '@/stores/task'
 import { useHabitStore } from '@/stores/habit'
 import { useGoalStore } from '@/stores/goal'
+import { useTransactionStore } from '@/stores/transaction'
+import { useCategoryStore } from '@/stores/category'
 import { useResponsive } from '@/composables/useResponsive'
 import { dashboardApi } from '@/api/dashboardApi'
 import { journalApi } from '@/api/journalApi'
@@ -636,6 +684,8 @@ const debtStore = useDebtStore()
 const taskStore = useTaskStore()
 const habitStore = useHabitStore()
 const goalStore = useGoalStore()
+const transactionStore = useTransactionStore()
+const categoryStore = useCategoryStore()
 const { isMobile } = useResponsive()
 
 const selectedTimeRange = ref('thisMonth')
@@ -677,11 +727,65 @@ const spendingRatioColor = computed(() => {
 async function fetchDashboard() {
   loading.value = true
   try {
-    dashboardData.value = await dashboardApi.getDashboardData(selectedTimeRange.value)
+    const data = await dashboardApi.getDashboardData(selectedTimeRange.value)
+    if (data?.recentTransactions) {
+      data.recentTransactions.forEach((t: any) => {
+        if (!t.categoryId && t.category?.id) {
+          t.categoryId = t.category.id
+        }
+        if (t.note && t.note.startsWith('Cổng:') && t.note.includes('Tích lũy:')) {
+          t.note = ''
+        }
+      })
+    }
+    dashboardData.value = data
   } catch (err) {
     console.error('Failed to load dashboard data', err)
   } finally {
     loading.value = false
+  }
+}
+
+const originalNotes = new Map<string, string>()
+
+function getCategoryColor(categoryId?: string) {
+  if (!categoryId) return ''
+  const cat = categoryStore.categories.find(c => c.id === categoryId)
+  return cat?.color || ''
+}
+
+function handleFocusNote(row: any) {
+  if (row.note && row.note.startsWith('Cổng:') && row.note.includes('Tích lũy:')) {
+    row.note = ''
+  }
+  originalNotes.set(row.id, row.note || '')
+}
+
+async function handleSaveNote(row: any) {
+  const oldVal = originalNotes.get(row.id) ?? ''
+  const newVal = (row.note || '').trim()
+  if (oldVal.trim() === newVal) return
+
+  try {
+    await transactionStore.quickUpdateNote(row.id, newVal)
+    originalNotes.set(row.id, newVal)
+  } catch (err) {
+    row.note = oldVal
+  }
+}
+
+async function handleQuickClassify(id: string, categoryId: string) {
+  try {
+    await transactionStore.quickClassify(id, categoryId)
+    const tx = dashboardData.value?.recentTransactions?.find((t: any) => t.id === id)
+    if (tx) {
+      const cat = categoryStore.categories.find(c => c.id === categoryId)
+      tx.categoryId = categoryId
+      tx.category = cat as any
+      tx.classificationStatus = 'CLASSIFIED'
+    }
+  } catch (err) {
+    console.error('Failed to classify transaction', err)
   }
 }
 
@@ -767,6 +871,7 @@ onMounted(() => {
   goalStore.fetchStatistics()
   loadTodayJournal()
   loadLearningDashboard()
+  categoryStore.fetchCategories()
 })
 </script>
 
@@ -1483,10 +1588,78 @@ onMounted(() => {
     display: flex;
     align-items: center;
     gap: 6px;
+    max-width: 100%;
+    overflow: hidden;
 
     .font-medium {
       font-weight: 500;
       color: var(--app-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  .category-select {
+    width: 100%;
+
+    .cat-option-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .cat-color-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+    }
+
+    .cat-prefix-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+  }
+
+  .note-quick-input {
+    width: 100%;
+
+    :deep(.el-input__wrapper) {
+      background-color: transparent;
+      box-shadow: none;
+      border: 1px dashed transparent;
+      transition: all 0.2s ease;
+      padding-left: 6px;
+      padding-right: 6px;
+
+      &:hover {
+        background-color: var(--el-fill-color-light);
+        border-color: var(--el-border-color);
+      }
+
+      &.is-focus {
+        background-color: #fff;
+        box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+        border-color: transparent;
+      }
+    }
+
+    :deep(.el-input__inner) {
+      font-size: 0.825rem;
+      color: var(--app-text);
+
+      &::placeholder {
+        font-style: italic;
+        color: var(--app-text-muted);
+        opacity: 0.65;
+      }
     }
   }
 
