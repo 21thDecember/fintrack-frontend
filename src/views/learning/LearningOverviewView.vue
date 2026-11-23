@@ -1,99 +1,38 @@
 <template>
   <div class="learning-overview-page">
     <!-- Page Header & Sub Navigation -->
-    <div class="page-top-bar">
-      <div class="title-col">
-        <h1 class="page-title">
-          <span>Học tập & Kỹ năng</span>
-          <el-tag size="small" effect="plain" type="primary" round class="module-badge">LifeOS</el-tag>
-        </h1>
-        <p class="page-desc">Theo dõi khóa học, sách, phát triển kỹ năng và ghi nhận thời gian học tập thực tế.</p>
-      </div>
-
-      <div class="top-nav-actions">
-        <router-link to="/learning/overview" class="subnav-link active">
-          <el-button round type="primary" size="default">
-            <el-icon><DataAnalysis /></el-icon>
-            Tổng quan
-          </el-button>
-        </router-link>
-        <router-link to="/learning/courses" class="subnav-link">
-          <el-button round size="default">
-            <el-icon><VideoPlay /></el-icon>
-            Khóa học
-          </el-button>
-        </router-link>
-        <router-link to="/learning/books" class="subnav-link">
-          <el-button round size="default">
-            <el-icon><Reading /></el-icon>
-            Sách
-          </el-button>
-        </router-link>
-        <router-link to="/learning/skills" class="subnav-link">
-          <el-button round size="default">
-            <el-icon><Aim /></el-icon>
-            Kỹ năng
-          </el-button>
-        </router-link>
-        <router-link to="/learning/sessions" class="subnav-link">
-          <el-button round size="default">
-            <el-icon><Timer /></el-icon>
-            Lịch sử học
-          </el-button>
-        </router-link>
-        <router-link to="/learning/notes" class="subnav-link">
-          <el-button round size="default">
-            <el-icon><Notebook /></el-icon>
-            Sổ tay ghi chú
-          </el-button>
-        </router-link>
-        <el-button type="success" round size="default" :icon="Plus" @click="openQuickSessionModal">
+    <LearningSubNav
+      title="Tổng quan Học tập"
+      subtitle="Theo dõi tiến độ học tập, tủ sách, phát triển kỹ năng và thời gian học thực tế."
+    >
+      <template #action>
+        <el-button type="primary" round size="default" :icon="Plus" @click="openQuickSessionModal">
           Ghi phiên học
         </el-button>
-      </div>
-    </div>
+      </template>
+    </LearningSubNav>
 
-    <!-- 6 Overview Stats Cards -->
+    <!-- 4 High-Impact Hero Stats Cards -->
     <div class="stats-grid" v-loading="loading">
-      <div class="stat-card">
+      <!-- Card 1: Learning Time (Hero Week + Today/Month pill) -->
+      <div class="stat-card time-card">
         <div class="stat-header">
-          <span class="stat-title">Học hôm nay</span>
-          <div class="stat-icon-wrapper today-icon">
-            <el-icon><Clock /></el-icon>
-          </div>
-        </div>
-        <div class="stat-value-group">
-          <span class="stat-value">{{ formatDuration(dashboard?.learningTimeTodayMinutes || 0) }}</span>
-          <span class="stat-subtext">Hôm nay</span>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-header">
-          <span class="stat-title">Tuần này</span>
+          <span class="stat-title">Thời gian học tập</span>
           <div class="stat-icon-wrapper week-icon">
             <el-icon><Timer /></el-icon>
           </div>
         </div>
         <div class="stat-value-group">
           <span class="stat-value">{{ formatDuration(dashboard?.learningTimeThisWeekMinutes || 0) }}</span>
-          <span class="stat-subtext">7 ngày trong tuần</span>
+          <span class="stat-subtext">Tuần này</span>
+        </div>
+        <div class="stat-sub-pills">
+          <span class="sub-pill">Hôm nay: <strong>{{ formatDuration(dashboard?.learningTimeTodayMinutes || 0) }}</strong></span>
+          <span class="sub-pill">Tháng này: <strong>{{ formatDuration(dashboard?.learningTimeThisMonthMinutes || 0) }}</strong></span>
         </div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-header">
-          <span class="stat-title">Tháng này</span>
-          <div class="stat-icon-wrapper month-icon">
-            <el-icon><Calendar /></el-icon>
-          </div>
-        </div>
-        <div class="stat-value-group">
-          <span class="stat-value">{{ formatDuration(dashboard?.learningTimeThisMonthMinutes || 0) }}</span>
-          <span class="stat-subtext">Tháng hiện tại</span>
-        </div>
-      </div>
-
+      <!-- Card 2: Courses in Progress -->
       <div class="stat-card">
         <div class="stat-header">
           <span class="stat-title">Khóa học đang học</span>
@@ -103,10 +42,11 @@
         </div>
         <div class="stat-value-group">
           <span class="stat-value">{{ dashboard?.activeCoursesCount || 0 }} <small>khóa</small></span>
-          <span class="stat-subtext">Đang trong tiến trình</span>
+          <span class="stat-subtext">Đang trong tiến trình học tập</span>
         </div>
       </div>
 
+      <!-- Card 3: Books Reading -->
       <div class="stat-card">
         <div class="stat-header">
           <span class="stat-title">Sách đang đọc</span>
@@ -116,10 +56,11 @@
         </div>
         <div class="stat-value-group">
           <span class="stat-value">{{ dashboard?.readingBooksCount || 0 }} <small>cuốn</small></span>
-          <span class="stat-subtext">Đang tích cực đọc</span>
+          <span class="stat-subtext">Đang tích cực nghiền ngẫm</span>
         </div>
       </div>
 
+      <!-- Card 4: Skills Practice -->
       <div class="stat-card">
         <div class="stat-header">
           <span class="stat-title">Kỹ năng rèn luyện</span>
@@ -402,19 +343,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import LearningSubNav from '@/components/learning/LearningSubNav.vue'
 import {
-  DataAnalysis,
   VideoPlay,
   Reading,
   Aim,
   Timer,
   Plus,
-  Clock,
-  Calendar,
   Histogram,
   Lightning,
-  List,
-  Notebook
+  List
 } from '@element-plus/icons-vue'
 import { learningApi } from '@/api/learningApi'
 import type {
@@ -571,59 +509,23 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-.page-top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  gap: 16px;
-
-  .title-col {
-    .page-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--app-text, #1e293b);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 0 0 6px 0;
-
-      .module-badge {
-        font-weight: 600;
-      }
-    }
-    .page-desc {
-      font-size: 14px;
-      color: var(--app-text-muted, #64748b);
-      margin: 0;
-    }
-  }
-
-  .top-nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-
-    .subnav-link {
-      text-decoration: none;
-    }
-  }
-}
-
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 24px;
 
   .stat-card {
     background: var(--app-card-bg, #ffffff);
     border: 1px solid var(--app-card-border, #e2e8f0);
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
 
     .stat-header {
       display: flex;
@@ -632,49 +534,68 @@ onMounted(() => {
       margin-bottom: 12px;
 
       .stat-title {
-        font-size: 13px;
+        font-size: 13.5px;
         color: var(--app-text-muted, #64748b);
         font-weight: 500;
       }
 
       .stat-icon-wrapper {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 16px;
+        font-size: 18px;
 
-        &.today-icon { background: #e0f2fe; color: #0284c7; }
         &.week-icon { background: #ede9fe; color: #7c3aed; }
-        &.month-icon { background: #fef3c7; color: #d97706; }
         &.course-icon { background: #dbeafe; color: #2563eb; }
         &.book-icon { background: #dcfce7; color: #16a34a; }
-        &.skill-icon { background: #fee2e2; color: #dc2626; }
+        &.skill-icon { background: #fef3c7; color: #d97706; }
       }
     }
 
     .stat-value-group {
       .stat-value {
         display: block;
-        font-size: 20px;
+        font-size: 24px;
         font-weight: 700;
         color: var(--app-text, #1e293b);
         line-height: 1.2;
 
         small {
-          font-size: 13px;
-          font-weight: 400;
+          font-size: 14px;
+          font-weight: 500;
           color: var(--app-text-muted, #64748b);
         }
       }
 
       .stat-subtext {
-        font-size: 11px;
+        font-size: 12px;
         color: var(--app-text-muted, #94a3b8);
         margin-top: 4px;
         display: block;
+      }
+    }
+
+    .stat-sub-pills {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--app-card-border, #e2e8f0);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+
+      .sub-pill {
+        font-size: 11.5px;
+        color: var(--app-text-muted, #64748b);
+
+        strong {
+          color: var(--app-text, #1e293b);
+          font-weight: 600;
+        }
       }
     }
   }
@@ -1030,7 +951,7 @@ onMounted(() => {
 /* Mobile Responsiveness */
 @media (max-width: 1024px) {
   .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
   .currently-learning-section .three-cols-grid {
     grid-template-columns: 1fr;
@@ -1045,24 +966,10 @@ onMounted(() => {
     padding: 16px;
   }
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
   .quick-log-card .quick-log-form .form-row-2 {
     grid-template-columns: 1fr;
-  }
-  .top-nav-actions {
-    width: 100%;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    padding-bottom: 4px;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    &::-webkit-scrollbar {
-      display: none;
-    }
-    .subnav-link {
-      flex-shrink: 0;
-    }
   }
   .session-row {
     flex-direction: column;

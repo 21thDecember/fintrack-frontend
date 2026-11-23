@@ -1,57 +1,16 @@
 <template>
   <div class="study-notes-page">
     <!-- Page Header & Sub Navigation -->
-    <div class="page-top-bar">
-      <div class="title-col">
-        <h1 class="page-title">
-          <span>Sổ tay Ghi chú</span>
-          <el-tag size="small" effect="plain" type="warning" round class="module-badge">LifeOS Notes</el-tag>
-        </h1>
-        <p class="page-desc">Tổng hợp lý thuyết khóa học, đúc kết sách đã đọc và bài học ghi chép từ các phiên học.</p>
-      </div>
-
-      <div class="top-nav-actions">
-        <router-link to="/learning/overview" class="subnav-link">
-          <el-button round size="default">
-            <el-icon><DataAnalysis /></el-icon>
-            Tổng quan
-          </el-button>
-        </router-link>
-        <router-link to="/learning/courses" class="subnav-link">
-          <el-button round size="default">
-            <el-icon><VideoPlay /></el-icon>
-            Khóa học
-          </el-button>
-        </router-link>
-        <router-link to="/learning/books" class="subnav-link">
-          <el-button round size="default">
-            <el-icon><Reading /></el-icon>
-            Sách
-          </el-button>
-        </router-link>
-        <router-link to="/learning/skills" class="subnav-link">
-          <el-button round size="default">
-            <el-icon><Aim /></el-icon>
-            Kỹ năng
-          </el-button>
-        </router-link>
-        <router-link to="/learning/sessions" class="subnav-link">
-          <el-button round size="default">
-            <el-icon><Timer /></el-icon>
-            Lịch sử học
-          </el-button>
-        </router-link>
-        <router-link to="/learning/notes" class="subnav-link active">
-          <el-button round type="primary" size="default">
-            <el-icon><Notebook /></el-icon>
-            Sổ tay ghi chú
-          </el-button>
-        </router-link>
+    <LearningSubNav
+      title="Sổ tay Ghi chú"
+      subtitle="Tổng hợp lý thuyết khóa học, đúc kết sách đã đọc và bài học ghi chép từ các phiên học."
+    >
+      <template #action>
         <el-button type="warning" round size="default" :icon="Plus" @click="openCreateNoteModal">
           Viết ghi chú mới
         </el-button>
-      </div>
-    </div>
+      </template>
+    </LearningSubNav>
 
     <!-- Filter & Search Card -->
     <div class="filter-card">
@@ -287,15 +246,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import LearningSubNav from '@/components/learning/LearningSubNav.vue'
 import {
-  DataAnalysis,
   VideoPlay,
   Reading,
-  Aim,
   Timer,
   Plus,
   Search,
-  Notebook,
   Edit,
   EditPen,
   DocumentCopy
@@ -583,54 +540,32 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-.page-top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  gap: 16px;
-
-  .title-col {
-    .page-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--app-text, #1e293b);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 0 0 6px 0;
-    }
-    .page-desc {
-      font-size: 14px;
-      color: var(--app-text-muted, #64748b);
-      margin: 0;
-    }
-  }
-
-  .top-nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-
-    .subnav-link {
-      text-decoration: none;
-    }
-  }
-}
-
 .filter-card {
   background: var(--app-card-bg, #ffffff);
   border: 1px solid var(--app-card-border, #e2e8f0);
-  border-radius: 12px;
-  padding: 14px 18px;
+  border-radius: 14px;
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 12px;
   margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+  .tabs-wrap {
+    overflow-x: auto;
+    max-width: 100%;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    :deep(.el-radio-group) {
+      flex-wrap: nowrap;
+    }
+  }
 
   .search-inputs {
     display: flex;
@@ -796,33 +731,6 @@ onMounted(() => {
 @media (max-width: 768px) {
   .study-notes-page {
     padding: 14px;
-  }
-  .top-nav-actions {
-    width: 100%;
-    overflow-x: auto;
-    flex-wrap: nowrap !important;
-    padding-bottom: 4px;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    &::-webkit-scrollbar {
-      display: none;
-    }
-    .subnav-link {
-      flex-shrink: 0;
-    }
-  }
-  .tabs-wrap {
-    overflow-x: auto;
-    max-width: 100%;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    &::-webkit-scrollbar {
-      display: none;
-    }
-    .el-radio-group {
-      flex-wrap: nowrap !important;
-      display: flex;
-    }
   }
   .filter-card {
     flex-direction: column;

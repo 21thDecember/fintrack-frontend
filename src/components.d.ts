@@ -54,6 +54,7 @@ declare module 'vue' {
     ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     IncomeExpenseChart: typeof import('./components/charts/IncomeExpenseChart.vue')['default']
+    LearningSubNav: typeof import('./components/learning/LearningSubNav.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SavingsGauge: typeof import('./components/charts/SavingsGauge.vue')['default']
