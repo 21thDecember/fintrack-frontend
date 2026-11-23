@@ -743,17 +743,20 @@ onMounted(() => {
   .course-card {
     background: var(--app-card-bg, #ffffff);
     border: 1px solid var(--app-card-border, #e2e8f0);
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.2s ease;
 
     &:hover {
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+      transform: translateY(-3px);
+      border-color: rgba(59, 130, 246, 0.3);
     }
 
     .card-top {
@@ -861,11 +864,16 @@ onMounted(() => {
   padding: 10px 12px;
   margin-bottom: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.2s ease,
+              border-color 0.2s ease,
+              box-shadow 0.2s ease;
 
   &:hover {
     border-color: #3b82f6;
-    background: rgba(59, 130, 246, 0.04);
+    background: rgba(59, 130, 246, 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
   }
 
   .notes-preview-head {

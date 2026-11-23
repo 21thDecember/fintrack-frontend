@@ -161,21 +161,39 @@ const navTabs = [
       color: var(--app-text-muted, #64748b);
       text-decoration: none;
       white-space: nowrap;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      transition: color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                  background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 
       .tab-icon {
         font-size: 15px;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
-      &:hover {
+      &:hover:not(.active) {
         color: var(--app-text, #1e293b);
+        background: rgba(0, 0, 0, 0.04);
+
+        .tab-icon {
+          transform: translateY(-1px) scale(1.08);
+        }
+      }
+
+      &:active {
+        transform: scale(0.96);
       }
 
       &.active {
         background: var(--app-card-bg, #ffffff);
         color: #2563eb;
         font-weight: 600;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+
+        .tab-icon {
+          transform: scale(1.05);
+        }
       }
     }
   }

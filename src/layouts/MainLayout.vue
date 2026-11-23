@@ -1159,15 +1159,23 @@ function handleLogout() {
   }
 }
 
-// Fade transition
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
+// Smooth Page Slide-Fade transition
+.fade-enter-active {
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.fade-enter-from,
+.fade-leave-active {
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
 .fade-leave-to {
   opacity: 0;
+  transform: translateY(-4px);
 }
 </style>
 

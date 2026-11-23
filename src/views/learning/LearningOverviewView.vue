@@ -520,11 +520,18 @@ onMounted(() => {
     border: 1px solid var(--app-card-border, #e2e8f0);
     border-radius: 14px;
     padding: 18px 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.25s ease;
 
     &:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+      border-color: rgba(59, 130, 246, 0.3);
+
+      .stat-icon-wrapper {
+        transform: scale(1.08);
+      }
     }
 
     .stat-header {
@@ -547,6 +554,7 @@ onMounted(() => {
         align-items: center;
         justify-content: center;
         font-size: 18px;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
         &.week-icon { background: #ede9fe; color: #7c3aed; }
         &.course-icon { background: #dbeafe; color: #2563eb; }
@@ -684,6 +692,7 @@ onMounted(() => {
         flex-direction: column;
         align-items: center;
         height: 100%;
+        cursor: pointer;
 
         .bar-track {
           flex: 1;
@@ -693,16 +702,18 @@ onMounted(() => {
           display: flex;
           align-items: flex-end;
           overflow: hidden;
+          transition: background-color 0.2s ease;
 
           .bar-fill {
             width: 100%;
             background: #cbd5e1;
             border-radius: 6px 6px 0 0;
-            transition: height 0.4s ease;
+            transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
             position: relative;
 
             &.has-activity {
               background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+              box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
             }
 
             .bar-tooltip {
@@ -714,7 +725,24 @@ onMounted(() => {
               font-weight: 600;
               color: var(--app-text, #1e293b);
               white-space: nowrap;
+              transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             }
+          }
+        }
+
+        &:hover {
+          .bar-track {
+            background: rgba(0, 0, 0, 0.05);
+          }
+          .bar-fill.has-activity {
+            filter: brightness(1.12);
+          }
+          .bar-tooltip {
+            transform: translateX(-50%) translateY(-2px);
+          }
+          .bar-date {
+            color: #0284c7;
+            font-weight: 600;
           }
         }
 
@@ -722,6 +750,7 @@ onMounted(() => {
           font-size: 11px;
           color: var(--app-text-muted, #64748b);
           margin-top: 8px;
+          transition: color 0.2s ease;
         }
       }
     }
@@ -777,9 +806,18 @@ onMounted(() => {
 
         .learning-item-card {
           padding: 12px;
-          border-radius: 8px;
+          border-radius: 10px;
           background: var(--app-bg-secondary, #f8fafc);
           border: 1px solid var(--app-card-border, #f1f5f9);
+          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                      box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                      border-color 0.2s ease;
+
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+            border-color: rgba(59, 130, 246, 0.3);
+          }
 
           .item-main {
             display: flex;
@@ -880,10 +918,23 @@ onMounted(() => {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px;
-      border-radius: 8px;
+      padding: 12px 14px;
+      border-radius: 10px;
       background: var(--app-bg-secondary, #f8fafc);
       border: 1px solid var(--app-card-border, #f1f5f9);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.2s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+        border-color: rgba(59, 130, 246, 0.3);
+
+        .duration-badge {
+          transform: scale(1.06);
+        }
+      }
 
       .session-left {
         display: flex;
@@ -901,6 +952,7 @@ onMounted(() => {
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
           .dur-num {
             font-size: 16px;

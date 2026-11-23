@@ -593,25 +593,30 @@ onMounted(() => {
   border: 1px solid var(--app-card-border, #e2e8f0);
   border-radius: 14px;
   padding: 18px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s ease;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
   }
 
   &.type-course {
     border-top: 3px solid #3b82f6;
+    &:hover { border-color: rgba(59, 130, 246, 0.35); border-top-color: #3b82f6; }
   }
   &.type-book {
     border-top: 3px solid #10b981;
+    &:hover { border-color: rgba(16, 185, 129, 0.35); border-top-color: #10b981; }
   }
   &.type-session {
     border-top: 3px solid #f59e0b;
+    &:hover { border-color: rgba(245, 158, 11, 0.35); border-top-color: #f59e0b; }
   }
 
   .card-header {

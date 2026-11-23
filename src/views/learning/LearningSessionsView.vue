@@ -535,16 +535,24 @@ onMounted(() => {
     .session-card {
       background: var(--app-card-bg, #ffffff);
       border: 1px solid var(--app-card-border, #e2e8f0);
-      border-radius: 12px;
-      padding: 16px;
+      border-radius: 14px;
+      padding: 16px 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.2s ease;
 
       &:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+        border-color: rgba(37, 99, 235, 0.3);
+
+        .dur-circle {
+          transform: scale(1.06);
+        }
       }
 
       .session-main {
@@ -565,6 +573,7 @@ onMounted(() => {
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
             .dur-val {
               font-size: 17px;
@@ -627,13 +636,18 @@ onMounted(() => {
             padding: 8px 12px;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                        background-color 0.2s ease,
+                        border-color 0.2s ease,
+                        box-shadow 0.2s ease;
             max-width: 100%;
             margin-top: 4px;
 
             &:hover {
               border-color: #f59e0b;
-              background: rgba(245, 158, 11, 0.04);
+              background: rgba(245, 158, 11, 0.05);
+              transform: translateY(-1px);
+              box-shadow: 0 2px 8px rgba(245, 158, 11, 0.08);
             }
 
             .notes-text-span {

@@ -729,17 +729,24 @@ onMounted(() => {
   .book-card {
     background: var(--app-card-bg, #ffffff);
     border: 1px solid var(--app-card-border, #e2e8f0);
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 18px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.2s ease;
 
     &:hover {
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+      transform: translateY(-3px);
+      border-color: rgba(16, 185, 129, 0.35);
+
+      .book-spine {
+        transform: rotate(-1.5deg) translateY(-2px);
+      }
     }
 
     .card-body-wrap {
@@ -759,6 +766,7 @@ onMounted(() => {
         color: #ffffff;
         flex-shrink: 0;
         box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
         .spine-icon {
           font-size: 20px;
@@ -878,11 +886,16 @@ onMounted(() => {
   padding: 10px 12px;
   margin-bottom: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.2s ease,
+              border-color 0.2s ease,
+              box-shadow 0.2s ease;
 
   &:hover {
     border-color: #10b981;
-    background: rgba(16, 185, 129, 0.04);
+    background: rgba(16, 185, 129, 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
   }
 
   .notes-preview-head {
