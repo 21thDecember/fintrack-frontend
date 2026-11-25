@@ -229,6 +229,8 @@ onMounted(() => {
 
   .categories-card {
     border-radius: 12px;
+    border: 1px solid var(--app-card-border);
+    box-shadow: none;
 
     .category-tabs {
       border-bottom: none;
@@ -237,8 +239,8 @@ onMounted(() => {
 
   .category-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
     padding-top: 10px;
   }
 
@@ -246,20 +248,16 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 14px;
-    border-radius: 10px;
-    background: var(--app-bg);
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.015);
     border: 1px solid var(--app-card-border);
-    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
     &:hover {
       border-color: rgba(16, 185, 129, 0.4);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
-
-      .cat-dot {
-        transform: scale(1.15);
-      }
+      background: var(--app-card-bg);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
 
     &.is-inactive {

@@ -9,7 +9,7 @@
           <p class="account-count-desc">Đang quản lý {{ accountStore.activeAccounts.length }} tài khoản đang hoạt động</p>
         </div>
         <div class="actions">
-          <el-button class="add-account-btn" size="large" :icon="Plus" @click="openCreateDialog">
+          <el-button type="primary" :icon="Plus" class="add-account-btn" @click="openCreateDialog">
             Thêm tài khoản mới
           </el-button>
         </div>
@@ -205,9 +205,10 @@ onMounted(() => {
   gap: 20px;
 
   .total-balance-card {
-    border-radius: 16px;
-    background: linear-gradient(135deg, #064E3B 0%, #065F46 50%, #047857 100%);
-    color: #FFFFFF;
+    border-radius: 12px;
+    background: var(--app-card-bg);
+    border: 1px solid var(--app-card-border);
+    box-shadow: none;
 
     .balance-card-inner {
       display: flex;
@@ -218,61 +219,46 @@ onMounted(() => {
     }
 
     .card-subtitle {
-      font-size: 0.875rem;
-      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--app-text-muted);
     }
 
     .total-balance-text {
-      font-size: 2.25rem;
-      font-weight: 800;
+      font-size: 2rem;
+      font-weight: 700;
       letter-spacing: -0.02em;
+      color: var(--app-text);
       margin: 4px 0;
     }
 
     .account-count-desc {
       font-size: 0.8125rem;
-      color: rgba(255, 255, 255, 0.7);
+      color: var(--app-text-muted);
     }
 
     .add-account-btn {
-      background: #FFFFFF;
-      color: #065F46;
-      border: none;
-      font-weight: 700;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-      transition: all 0.2s ease;
-
-      &:hover, &:focus {
-        background: #F0FDF4;
-        color: #047857;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-      }
-
-      &:active {
-        transform: scale(0.96);
-      }
+      font-weight: 600;
     }
   }
 
   .accounts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
   }
 
   .account-card {
-    border-radius: 14px;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
-    will-change: transform;
+    border-radius: 12px;
+    border: 1px solid var(--app-card-border);
+    box-shadow: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
     &:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-
-      .acc-badge-icon {
-        transform: scale(1.08);
-      }
+      border-color: rgba(16, 185, 129, 0.4);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
 
     &.is-inactive {

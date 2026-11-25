@@ -362,11 +362,13 @@ onMounted(() => {
   }
 
   .settings-card {
-    border-radius: 14px;
-    transition: box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+    border-radius: 12px;
+    border: 1px solid var(--app-card-border);
+    box-shadow: none;
+    transition: border-color 0.15s ease;
 
     &:hover {
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+      border-color: rgba(16, 185, 129, 0.4);
     }
 
     .card-header-flex {
@@ -378,8 +380,8 @@ onMounted(() => {
     }
 
     .section-title {
-      font-size: 1rem;
-      font-weight: 700;
+      font-size: 0.95rem;
+      font-weight: 600;
       color: var(--app-text);
     }
 
@@ -391,8 +393,7 @@ onMounted(() => {
   }
 
   .keyword-tag {
-    font-weight: 700;
-    letter-spacing: 0.05em;
+    font-weight: 600;
   }
 
   .backup-actions {
@@ -403,7 +404,8 @@ onMounted(() => {
 
   // SePay Card Styles
   .sepay-card {
-    border: 1px solid rgba(16, 185, 129, 0.25) !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+    box-shadow: none !important;
 
     .sepay-header-left {
       display: flex;
@@ -411,13 +413,13 @@ onMounted(() => {
       gap: 12px;
 
       .sepay-logo-badge {
-        font-weight: 800;
-        font-size: 0.875rem;
+        font-weight: 700;
+        font-size: 0.8125rem;
         padding: 4px 10px;
-        border-radius: 8px;
-        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-        color: #FFFFFF;
-        box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+        border-radius: 6px;
+        background: rgba(16, 185, 129, 0.1);
+        color: #10B981;
+        box-shadow: none;
       }
     }
 

@@ -663,16 +663,15 @@ onMounted(() => {
       display: flex;
       align-items: center;
       gap: 6px;
-      padding: 8px 14px;
-      border-radius: 10px;
+      padding: 6px 12px;
+      border-radius: 8px;
       background: var(--app-card-bg);
       border: 1px solid var(--app-card-border);
-      font-size: 0.875rem;
-      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-size: 0.8125rem;
+      transition: border-color 0.15s ease;
 
       &:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        border-color: rgba(16, 185, 129, 0.35);
       }
 
       .label {
@@ -687,6 +686,8 @@ onMounted(() => {
 
   .content-card {
     border-radius: 12px;
+    border: 1px solid var(--app-card-border);
+    box-shadow: none;
 
     .date-cell {
       display: flex;
@@ -761,7 +762,7 @@ onMounted(() => {
         }
 
         &.is-focus {
-          background-color: #fff;
+          background-color: var(--app-card-bg);
           box-shadow: 0 0 0 1px var(--el-color-primary) inset;
           border-color: transparent;
         }

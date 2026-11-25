@@ -514,25 +514,20 @@ onMounted(() => {
 }
 
 .stat-card {
-  background: var(--app-card-bg, #ffffff);
-  border: 1px solid var(--app-card-border, #e2e8f0);
-  border-radius: 14px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 12px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
-  will-change: transform;
+  box-shadow: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-
-    .stat-icon-wrapper {
-      transform: scale(1.08);
-    }
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   }
 
   .stat-header {
@@ -588,11 +583,11 @@ onMounted(() => {
 
 .calendar-card,
 .recent-list-card {
-  background: var(--app-card-bg, #ffffff);
-  border: 1px solid var(--app-card-border, #e2e8f0);
-  border-radius: 14px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 12px;
   padding: 18px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  box-shadow: none;
   min-width: 0;
 }
 

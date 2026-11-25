@@ -577,6 +577,8 @@ onMounted(() => {
 
   .section-card {
     border-radius: 12px;
+    border: 1px solid var(--app-card-border);
+    box-shadow: none;
 
     .card-title-row {
       display: flex;

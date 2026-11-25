@@ -56,16 +56,14 @@ const displayValue = computed(() => {
 <style scoped lang="scss">
 .stat-card {
   height: 100%;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease !important;
-  will-change: transform;
+  border-radius: 12px;
+  border: 1px solid var(--app-card-border);
+  box-shadow: none !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08) !important;
-
-    .stat-icon-wrapper {
-      transform: scale(1.08);
-    }
+    border-color: rgba(16, 185, 129, 0.4) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
   }
 
   .stat-card-content {
@@ -117,11 +115,10 @@ const displayValue = computed(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
     flex-shrink: 0;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   @media (max-width: 640px) {

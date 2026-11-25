@@ -516,22 +516,16 @@ onMounted(() => {
   margin-bottom: 24px;
 
   .stat-card {
-    background: var(--app-card-bg, #ffffff);
-    border: 1px solid var(--app-card-border, #e2e8f0);
-    border-radius: 14px;
-    padding: 18px 20px;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-                box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-                border-color 0.25s ease;
+    background: var(--app-card-bg);
+    border: 1px solid var(--app-card-border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
     &:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-      border-color: rgba(59, 130, 246, 0.3);
-
-      .stat-icon-wrapper {
-        transform: scale(1.08);
-      }
+      border-color: rgba(59, 130, 246, 0.4);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
 
     .stat-header {
@@ -617,11 +611,11 @@ onMounted(() => {
 }
 
 .card-box {
-  background: var(--app-card-bg, #ffffff);
-  border: 1px solid var(--app-card-border, #e2e8f0);
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
   border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 18px 20px;
+  box-shadow: none;
 
   .card-head {
     display: flex;

@@ -949,16 +949,11 @@ onMounted(async () => {
       flex-direction: column;
       gap: 8px;
       min-width: 0;
-      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
-      will-change: transform;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
       &:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-
-        .stat-icon-wrap {
-          transform: scale(1.08);
-        }
+        border-color: rgba(16, 185, 129, 0.4);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       }
 
       .stat-top {

@@ -716,7 +716,9 @@ onMounted(async () => {
   }
 
   .form-card {
-    border-radius: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--app-card-border);
+    box-shadow: none;
     padding: 10px;
   }
 
@@ -750,8 +752,8 @@ onMounted(async () => {
   .amount-input-section {
     margin: 16px 0;
     padding: 16px;
-    background: var(--el-table-header-bg-color);
-    border-radius: 12px;
+    background: var(--app-bg);
+    border-radius: 10px;
     border: 1px solid var(--app-card-border);
 
     .amount-wrapper {

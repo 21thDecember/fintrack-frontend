@@ -766,9 +766,9 @@ onMounted(() => {
     .goal-banner-card {
       background: var(--app-card-bg);
       border: 1px solid var(--app-card-border);
-      border-radius: 14px;
+      border-radius: 12px;
       padding: 24px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+      box-shadow: none;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -1050,9 +1050,9 @@ onMounted(() => {
     .milestones-card {
       background: var(--app-card-bg);
       border: 1px solid var(--app-card-border);
-      border-radius: 14px;
+      border-radius: 12px;
       padding: 24px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+      box-shadow: none;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -1243,9 +1243,9 @@ onMounted(() => {
       .linked-card {
         background: var(--app-card-bg);
         border: 1px solid var(--app-card-border);
-        border-radius: 14px;
+        border-radius: 12px;
         padding: 20px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        box-shadow: none;
         display: flex;
         flex-direction: column;
         gap: 12px;

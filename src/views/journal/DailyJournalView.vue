@@ -471,11 +471,11 @@ watch(() => route.query.date, (newDate) => {
 }
 
 .section-card {
-  background: var(--app-card-bg, #ffffff);
-  border: 1px solid var(--app-card-border, #e2e8f0);
-  border-radius: 14px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 12px;
   padding: 18px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  box-shadow: none;
 
   .section-head {
     display: flex;

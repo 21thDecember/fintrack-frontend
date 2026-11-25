@@ -962,17 +962,12 @@ onMounted(() => {
       border: 1px solid var(--app-card-border);
       border-radius: 12px;
       padding: 16px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
-      will-change: transform;
+      box-shadow: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
       &:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-
-        .stat-icon-wrap {
-          transform: scale(1.08);
-        }
+        border-color: rgba(16, 185, 129, 0.4);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       }
 
       &.has-overdue {
@@ -1150,20 +1145,18 @@ onMounted(() => {
       .goal-card {
         background: var(--app-card-bg);
         border: 1px solid var(--app-card-border);
-        border-radius: 14px;
-        padding: 18px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        border-radius: 12px;
+        padding: 16px 18px;
+        box-shadow: none;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         gap: 14px;
-        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
-        will-change: transform;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
         &:hover {
-          border-color: rgba(99, 102, 241, 0.45);
-          transform: translateY(-3px);
-          box-shadow: 0 10px 24px rgba(99, 102, 241, 0.1);
+          border-color: rgba(99, 102, 241, 0.4);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
         }
 
         &.goal-completed {
