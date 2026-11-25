@@ -184,6 +184,31 @@
       </div>
     </el-card>
 
+    <!-- 4. System & Deployment Notice -->
+    <el-card class="settings-card" shadow="never">
+      <template #header>
+        <h3 class="section-title">Trạng thái Hệ thống & Trang Triển khai (Deploy Notice)</h3>
+      </template>
+
+      <div class="deploy-settings-content">
+        <p class="section-desc">
+          Trang báo trạng thái khi Backend hoặc Frontend đang deploy / bảo trì. Trang có sẵn tính năng tự động đếm lùi, kiểm tra kết nối API và đưa người dùng quay lại ứng dụng ngay khi triển khai xong.
+        </p>
+
+        <div class="deploy-preview-actions">
+          <el-button type="primary" plain @click="testDeployOverlay">
+            🚀 Xem trước Thông báo Deploy (Overlay)
+          </el-button>
+          <el-button @click="openStandaloneDeployPage">
+            🌐 Mở trang Deploying riêng (/deploying)
+          </el-button>
+          <el-button @click="openStaticMaintenancePage">
+            📄 Xem trang Tĩnh Độc lập (deploying.html)
+          </el-button>
+        </div>
+      </div>
+    </el-card>
+
     <!-- Add Rule Dialog -->
     <el-dialog v-model="showAddRuleDialog" title="Thêm quy tắc phân loại mới" width="460px" append-to-body>
       <el-form ref="ruleFormRef" :model="newRule" :rules="ruleRules" label-position="top">
@@ -222,9 +247,13 @@ import { Plus, Download, Upload, DocumentCopy, Position } from '@element-plus/ic
 import { settingsApi, type ClassificationRule } from '@/api/settingsApi'
 import apiClient from '@/api/client'
 import { useCategoryStore } from '@/stores/category'
+import { useDeployStore } from '@/stores/deploy'
+import { useRouter } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
 import { ElMessage } from 'element-plus'
 
+const router = useRouter()
+const deployStore = useDeployStore()
 const categoryStore = useCategoryStore()
 const { isDark, toggleDark } = useTheme()
 
@@ -332,6 +361,23 @@ function handleExportData() {
 
 function handleBackupData() {
   ElMessage.success('Đã tạo bản sao lưu snapshot hệ thống thành công')
+}
+
+function testDeployOverlay() {
+  deployStore.triggerDeploy(
+    'backend',
+    'Máy chủ Backend đang triển khai (Chế độ xem trước)',
+    'Hệ thống đang mô phỏng thông báo cập nhật phiên bản mới. Bạn có thể kiểm tra cơ chế đếm lùi, kiểm tra API hoặc bấm dấu X để đóng.',
+    true
+  )
+}
+
+function openStandaloneDeployPage() {
+  router.push('/deploying')
+}
+
+function openStaticMaintenancePage() {
+  window.open('/deploying.html', '_blank')
 }
 
 onMounted(() => {
@@ -486,6 +532,24 @@ onMounted(() => {
       padding: 16px;
       border-radius: 10px;
       background-color: var(--el-fill-color-light);
+    }
+  }
+
+  .deploy-settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .section-desc {
+      font-size: 0.875rem;
+      color: var(--app-text-muted);
+      line-height: 1.5;
+    }
+
+    .deploy-preview-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
     }
   }
 }

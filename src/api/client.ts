@@ -247,8 +247,31 @@ apiClient.interceptors.response.use(
       return Promise.reject(error)
     }
 
+    // Backend Deploying / Gateway Error (502, 503, 504)
+    if (status === 502 || status === 503 || status === 504) {
+      try {
+        const { useDeployStore } = await import('@/stores/deploy')
+        useDeployStore().triggerDeploy(
+          'backend',
+          `Máy chủ Backend đang triển khai (HTTP ${status})`,
+          'Dịch vụ Backend đang được nâng cấp hoặc khởi động lại. Hệ thống sẽ tự động kết nối lại khi hoàn tất.'
+        )
+      } catch (e) {
+        console.error('[Deploy] Error triggering deploy store:', e)
+      }
+      return Promise.reject(error)
+    }
+
     // Network error (no connection to backend): Use fallback mock
     if (!error.response) {
+      try {
+        const { useDeployStore } = await import('@/stores/deploy')
+        const deployStore = useDeployStore()
+        if (deployStore.isDeploying) {
+          return Promise.reject(error)
+        }
+      } catch {}
+
       console.warn(`[Backend Offline Fallback] Handling ${error.config?.url} with local state`)
       return handleMockFallback(error.config)
     }

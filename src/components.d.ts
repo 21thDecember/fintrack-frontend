@@ -11,6 +11,7 @@ declare module 'vue' {
     CategoryPieChart: typeof import('./components/charts/CategoryPieChart.vue')['default']
     DebtAllocationInput: typeof import('./components/transactions/DebtAllocationInput.vue')['default']
     DebtPaymentDialog: typeof import('./components/debts/DebtPaymentDialog.vue')['default']
+    DeployingOverlay: typeof import('./components/common/DeployingOverlay.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElBadge: typeof import('element-plus/es')['ElBadge']

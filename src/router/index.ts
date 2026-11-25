@@ -9,6 +9,18 @@ const routes: RouteRecordRaw[] = [
     meta: { title: 'Đăng nhập', guestOnly: true }
   },
   {
+    path: '/deploying',
+    name: 'Deploying',
+    component: () => import('@/views/system/DeployingView.vue'),
+    meta: { title: 'Hệ thống đang triển khai', allowAnonymous: true }
+  },
+  {
+    path: '/maintenance',
+    name: 'Maintenance',
+    component: () => import('@/views/system/DeployingView.vue'),
+    meta: { title: 'Bảo trì hệ thống', allowAnonymous: true }
+  },
+  {
     path: '/',
     component: MainLayout,
     redirect: '/dashboard',
@@ -187,12 +199,29 @@ router.beforeEach((to, _from, next) => {
   const title = (to.meta?.title as string) || 'Quản Lý Tài Chính Cá Nhân'
   document.title = `${title} | FinTrack VN`
 
-  if (to.meta?.requiresAuth && !token) {
+  if (to.meta?.allowAnonymous) {
+    next()
+  } else if (to.meta?.requiresAuth && !token) {
     next('/login')
   } else if (to.meta?.guestOnly && token) {
     next('/dashboard')
   } else {
     next()
+  }
+})
+
+// Detect Frontend Deployment Chunk Load Failures (Vite dynamic import error)
+router.onError((error) => {
+  const isChunkError =
+    error.message.includes('Failed to fetch dynamically imported module') ||
+    error.message.includes('Loading chunk') ||
+    error.message.includes('dynamically imported module')
+
+  if (isChunkError) {
+    console.warn('[Deploy Detector] Frontend bundle outdated. Reloading application...')
+    // Show deploying notification before reload
+    sessionStorage.setItem('deploy_notice', 'frontend')
+    window.location.reload()
   }
 })
 
