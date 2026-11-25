@@ -51,7 +51,6 @@
                   <span v-if="!isCollapsed" class="nav-label">LifeOS</span>
                 </div>
                 <div v-if="!isCollapsed" class="parent-right">
-                  <span class="module-tag lifeos-tag">Cá nhân</span>
                   <el-icon class="arrow-icon" :class="{ rotated: openGroups.lifeos }">
                     <ArrowDown />
                   </el-icon>
@@ -61,7 +60,7 @@
 
             <!-- Flyout for Collapsed Sidebar -->
             <div class="popover-nav-list">
-              <div class="popover-header">✨ LifeOS (Cá nhân)</div>
+              <div class="popover-header">LifeOS</div>
               <router-link
                 v-for="sub in lifeosItems"
                 :key="sub.path"
@@ -120,7 +119,6 @@
                     type="warning"
                     class="group-badge"
                   />
-                  <span class="module-tag finance-tag">Tiền tệ</span>
                   <el-icon class="arrow-icon" :class="{ rotated: openGroups.finance }">
                     <ArrowDown />
                   </el-icon>
@@ -130,7 +128,7 @@
 
             <!-- Flyout for Collapsed Sidebar -->
             <div class="popover-nav-list">
-              <div class="popover-header">💰 Quản lý Tài chính</div>
+              <div class="popover-header">Tài chính</div>
               <router-link
                 v-for="sub in financeItems"
                 :key="sub.path"
@@ -320,9 +318,8 @@
             <div class="drawer-section-title">
               <span class="sec-left">
                 <el-icon :size="16"><Compass /></el-icon>
-                <span>LifeOS (Cá nhân)</span>
+                <span>LifeOS</span>
               </span>
-              <span class="module-tag lifeos-tag">{{ lifeosItems.length }} mục</span>
             </div>
             <div class="drawer-sub-links">
               <router-link
@@ -344,9 +341,8 @@
             <div class="drawer-section-title">
               <span class="sec-left">
                 <el-icon :size="16"><Wallet /></el-icon>
-                <span>Quản lý Tài chính</span>
+                <span>Tài chính</span>
               </span>
-              <span class="module-tag finance-tag">5 mục</span>
             </div>
             <div class="drawer-sub-links">
               <router-link
@@ -646,33 +642,38 @@ function handleLogout() {
     .nav-link {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 9px 12px;
-      border-radius: 10px;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
       color: var(--app-text-muted);
       font-weight: 500;
-      font-size: 0.875rem;
+      font-size: 0.84rem;
       text-decoration: none;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
 
-      &:active {
-        transform: scale(0.97);
-      }
-
       &:hover {
-        background-color: var(--el-table-header-bg-color);
+        background-color: rgba(0, 0, 0, 0.035);
         color: var(--app-text);
+
+        .nav-icon {
+          color: var(--app-text);
+        }
       }
 
       &.router-link-active {
-        background-color: rgba(16, 185, 129, 0.12);
+        background-color: rgba(16, 185, 129, 0.08);
         color: #10B981;
         font-weight: 600;
 
         .nav-icon {
           color: #10B981;
         }
+      }
+
+      .nav-icon {
+        color: var(--app-text-muted);
+        transition: color 0.18s ease;
       }
     }
 
@@ -686,36 +687,37 @@ function handleLogout() {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 9px 12px;
-        border-radius: 10px;
+        padding: 8px 12px;
+        border-radius: 8px;
         border: none;
         background: transparent;
-        color: var(--app-text);
-        font-size: 0.875rem;
+        color: var(--app-text-muted);
+        font-size: 0.84rem;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-
-        &:active {
-          transform: scale(0.98);
-        }
+        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 
         &:hover {
-          background-color: var(--el-table-header-bg-color);
+          background-color: rgba(0, 0, 0, 0.035);
+          color: var(--app-text);
+
+          .nav-icon {
+            color: var(--app-text);
+          }
         }
 
         &.is-active {
           color: var(--app-text);
-          background-color: rgba(0, 0, 0, 0.025);
         }
 
         .parent-left {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
 
           .nav-icon {
             color: var(--app-text-muted);
+            transition: color 0.18s ease;
           }
         }
 
@@ -724,25 +726,8 @@ function handleLogout() {
           align-items: center;
           gap: 6px;
 
-          .module-tag {
-            font-size: 0.625rem;
-            font-weight: 700;
-            padding: 1px 6px;
-            border-radius: 4px;
-
-            &.lifeos-tag {
-              background: rgba(99, 102, 241, 0.15);
-              color: #6366F1;
-            }
-
-            &.finance-tag {
-              background: rgba(16, 185, 129, 0.15);
-              color: #10B981;
-            }
-          }
-
           .arrow-icon {
-            font-size: 0.6875rem;
+            font-size: 0.75rem;
             color: var(--app-text-muted);
             transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -755,9 +740,9 @@ function handleLogout() {
 
       /* Indented Submenu List */
       .submenu-list {
-        margin-left: 20px;
+        margin-left: 21px;
         padding-left: 10px;
-        border-left: 1.5px solid var(--app-sidebar-border);
+        border-left: 1px solid var(--app-sidebar-border);
         display: flex;
         flex-direction: column;
         gap: 2px;
@@ -768,32 +753,37 @@ function handleLogout() {
           display: flex;
           align-items: center;
           gap: 10px;
-          padding: 7px 10px;
-          border-radius: 8px;
+          padding: 6px 10px;
+          border-radius: 6px;
           font-size: 0.8125rem;
           color: var(--app-text-muted);
           font-weight: 500;
           text-decoration: none;
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
 
-          &:active {
-            transform: scale(0.97);
-          }
-
           &:hover {
-            background-color: var(--el-table-header-bg-color);
+            background-color: rgba(0, 0, 0, 0.035);
             color: var(--app-text);
+
+            .sub-icon {
+              color: var(--app-text);
+            }
           }
 
           &.router-link-active {
-            background-color: rgba(16, 185, 129, 0.12);
+            background-color: rgba(16, 185, 129, 0.08);
             color: #10B981;
             font-weight: 600;
 
             .sub-icon {
               color: #10B981;
             }
+          }
+
+          .sub-icon {
+            color: var(--app-text-muted);
+            transition: color 0.18s ease;
           }
 
           .nav-badge {
@@ -847,6 +837,21 @@ function handleLogout() {
     .footer-actions {
       display: flex;
       gap: 6px;
+    }
+  }
+}
+
+html.dark {
+  .app-sidebar {
+    .nav-link,
+    .nav-parent-btn,
+    .nav-sub-link {
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+      &.router-link-active {
+        background-color: rgba(16, 185, 129, 0.16);
+      }
     }
   }
 }
