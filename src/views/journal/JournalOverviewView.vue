@@ -189,11 +189,11 @@
 
             <h3 class="item-title">{{ item.title || 'Nhật ký không tiêu đề' }}</h3>
 
-            <p v-if="item.highlight" class="item-highlight">
-              <strong>⭐ Điểm sáng:</strong> {{ item.highlight }}
-            </p>
-            <p v-else-if="item.content" class="item-snippet">
+            <p v-if="item.content" class="item-snippet">
               {{ truncateText(item.content, 90) }}
+            </p>
+            <p v-else-if="item.highlight" class="item-highlight">
+              <strong>⭐ Điểm sáng:</strong> {{ item.highlight }}
             </p>
 
             <div class="item-footer">
@@ -450,7 +450,8 @@ async function loadRecentJournals() {
       page: 0,
       size: 10
     })
-    recentJournals.value = res.content || []
+    const list = res.content || []
+    recentJournals.value = list.slice().sort((a, b) => b.journalDate.localeCompare(a.journalDate))
   } catch (err) {
     console.error('Failed to load recent journals', err)
   } finally {

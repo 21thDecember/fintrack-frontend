@@ -120,49 +120,6 @@
               placeholder="Hôm nay của bạn diễn ra như thế nào? Bạn đã gặp gỡ ai, học được gì hay có điều gì muốn ghi lại?..."
             />
           </div>
-
-          <!-- Structured Reflection Prompts -->
-          <div class="reflection-prompts-grid">
-            <div class="form-item prompt-item">
-              <label class="form-label">⭐ Điểm sáng trong ngày (Highlight)</label>
-              <el-input
-                v-model="journalForm.highlight"
-                type="textarea"
-                :autosize="{ minRows: 2, maxRows: 6 }"
-                placeholder="Điều tuyệt vời nhất hoặc đáng nhớ nhất hôm nay..."
-              />
-            </div>
-
-            <div class="form-item prompt-item">
-              <label class="form-label">🙏 Lòng biết ơn (Gratitude)</label>
-              <el-input
-                v-model="journalForm.gratitude"
-                type="textarea"
-                :autosize="{ minRows: 2, maxRows: 6 }"
-                placeholder="Những điều bạn cảm thấy biết ơn trong ngày hôm nay..."
-              />
-            </div>
-
-            <div class="form-item prompt-item">
-              <label class="form-label">🎯 Điều muốn cải thiện (Improvement)</label>
-              <el-input
-                v-model="journalForm.improvement"
-                type="textarea"
-                :autosize="{ minRows: 2, maxRows: 6 }"
-                placeholder="Điều gì bạn có thể làm tốt hơn nếu được làm lại?..."
-              />
-            </div>
-
-            <div class="form-item prompt-item">
-              <label class="form-label">🚀 Kế hoạch ngày mai (Tomorrow Plan)</label>
-              <el-input
-                v-model="journalForm.tomorrowPlan"
-                type="textarea"
-                :autosize="{ minRows: 2, maxRows: 6 }"
-                placeholder="Việc ưu tiên quan trọng nhất bạn muốn hoàn thành vào ngày mai..."
-              />
-            </div>
-          </div>
         </div>
 
         <!-- Action Footer -->
@@ -367,6 +324,7 @@ async function saveAll() {
     existingJournalId.value = journalRes.id
     journalSaved.value = true
     ElMessage.success('Đã lưu nhật ký và tâm trạng thành công!')
+    router.push('/journals')
   } catch (err: any) {
     ElMessage.error(err.response?.data?.message || 'Có lỗi khi lưu nhật ký')
   } finally {
@@ -388,6 +346,7 @@ async function deleteCurrentJournal() {
     journalForm.tomorrowPlan = ''
     journalSaved.value = false
     ElMessage.success('Đã xóa nhật ký thành công')
+    router.push('/journals')
   } catch (err: any) {
     ElMessage.error(err.response?.data?.message || 'Có lỗi khi xóa nhật ký')
   } finally {
@@ -640,13 +599,6 @@ watch(() => route.query.date, (newDate) => {
         color: var(--app-text, #334155);
       }
     }
-
-    .reflection-prompts-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-      margin-top: 6px;
-    }
   }
 
   .form-actions-footer {
@@ -702,10 +654,6 @@ watch(() => route.query.date, (newDate) => {
   }
 
   .journal-form-card {
-    .form-body .reflection-prompts-grid {
-      grid-template-columns: 1fr;
-    }
-
     .form-actions-footer {
       flex-direction: column-reverse;
       width: 100%;
